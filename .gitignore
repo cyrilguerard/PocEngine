@@ -8,6 +8,9 @@
 *.vcxproj
 *.vcxproj.filters
 
+# ignore CMake build
+build/
+
 # User-specific files
 *.rsuser
 *.suo

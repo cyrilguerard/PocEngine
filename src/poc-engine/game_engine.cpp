@@ -1,6 +1,8 @@
 #include <iostream>
 
+#define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
+
 #include "vulkan/vulkan.hpp"
 
 #include "game_engine.hpp"
