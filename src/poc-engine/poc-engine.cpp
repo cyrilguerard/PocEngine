@@ -8,9 +8,9 @@
 
 #include "vulkan/vulkan.hpp"
 
-#include "game_engine.h"
+#include "poc-engine.h"
 
-void poc::GameEngine::start()
+void poc::PocEngine::start()
 {
 	std::cout << "[POC::GameEngine] Start engine" << std::endl;
 	

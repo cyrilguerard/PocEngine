@@ -2,7 +2,7 @@
 
 int main() {
 
-	auto engine = poc::GameEngine();
+	auto engine = poc::PocEngine();
 	engine.start();
 
 	return 0;

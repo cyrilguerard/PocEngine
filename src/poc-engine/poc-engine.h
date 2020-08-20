@@ -2,7 +2,7 @@
 
 namespace poc {
 
-	class GameEngine
+	class PocEngine
 	{
 
 	public:
