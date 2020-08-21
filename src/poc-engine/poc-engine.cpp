@@ -1,29 +1,20 @@
-
-#include <chrono>
-#include <iostream>
-#include <thread>
-
-#define GLFW_INCLUDE_NONE
-#include "GLFW/glfw3.h"
-
-#include "vulkan/vulkan.hpp"
-
 #include "poc-engine.h"
+#include "rendering/window.h"
 
-void poc::PocEngine::start()
+void poc::PocEngine::run()
 {
-	std::cout << "[POC::GameEngine] Start engine" << std::endl;
-	
-	const auto createInfo = vk::InstanceCreateInfo();
-	const auto instance = vk::createInstanceUnique(createInfo);
-	assert(instance);
+	std::cout << "[POC::PocEngine] Starting..." << std::endl;
 
-	glfwInit();
-	const auto window = glfwCreateWindow(800, 600, "Poc Engine", nullptr, nullptr);
-	assert(window && "Create Window failed");
+	auto window = poc::layers::window::Window::createWindow(1024, 768, "PocEngine");
 
-	std::this_thread::sleep_for(std::chrono::seconds(3));
+	std::cout << "[POC::PocEngine] Started" << std::endl;
 
-	glfwDestroyWindow(window);
+	while (!window.isClosing()) {
+		window.update();
+	}
+
+	std::cout << "[POC::PocEngine] Stopping..." << std::endl;
+
+	std::cout << "[POC::PocEngine] Stopped" << std::endl;
 
 }
