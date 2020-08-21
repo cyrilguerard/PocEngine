@@ -3,7 +3,7 @@
 int main() {
 
 	auto engine = poc::PocEngine();
-	engine.start();
+	engine.run();
 
 	return 0;
 }

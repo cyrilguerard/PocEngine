@@ -6,7 +6,8 @@ namespace poc {
 	{
 
 	public:
-		void start();
+
+		void run();
 
 	};
 
