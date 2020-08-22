@@ -18,3 +18,4 @@ endif()
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/poc-engine")
 add_subdirectory("${PROJECT_SOURCE_DIR}/demos/demo-01-simple-window")
+add_subdirectory("${PROJECT_SOURCE_DIR}/demos/demo-02-draw-simple-shape")
