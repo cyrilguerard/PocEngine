@@ -1,31 +1,26 @@
 #pragma once
 
-#include <iostream>
-
 #include <string>
+#include "graphic.h"
 
-namespace poc::layers::window {
+namespace poc::layers {
 
 	class Window {
 
 	public:
 
-		bool isClosing();
-		void update();
+		virtual bool isClosing() = 0;
+		virtual void update() = 0;
+		virtual ~Window() = 0;
 
-		static Window createWindow(int width, int height, std::string title);
-		~Window();
+		static Window* createWindow(int width, int height, std::string title, Graphic::Api api);
 
-		Window(const Window&) = delete;
-		Window& operator=(const Window&) = delete;
-		Window(Window&&) = delete;
-		Window& operator=(Window&&) = delete;
+	protected:
+
+		Window();
 
 	private:
-
-		void* handler = nullptr;
-		Window(int width, int height, std::string title);
-
+		
 		static bool created;
 
 	};

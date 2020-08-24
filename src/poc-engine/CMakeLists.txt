@@ -11,7 +11,7 @@ message(WARN ${POC_ENGINE_SRC_DIR})
 # Vulkan
 find_package(Vulkan REQUIRED)
 target_include_directories(poc-engine PUBLIC ${VULKAN_INC})
-target_link_libraries(poc-engine ${VULKAN_LIB})
+#target_link_libraries(poc-engine ${VULKAN_LIB})
 
 # GLFW3
 find_package(GLFW3 REQUIRED)
