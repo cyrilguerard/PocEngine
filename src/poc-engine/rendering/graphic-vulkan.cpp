@@ -1,3 +1,6 @@
+#include <optional>
+#include <set>
+
 #include "../constants.h"
 #include "../debug.h"
 
@@ -10,13 +13,21 @@ namespace poc::layers {
 
 	constexpr const char* const debugLayer = "VK_LAYER_KHRONOS_validation";
 	constexpr const char* const debugExtension = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+	const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 	vk::DebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo(bool verbose = false);
+	bool isDeviceSuitable(vk::PhysicalDevice device, vk::SurfaceKHR surface);
+	std::optional<uint32_t> findSuitableQueueFamily(vk::PhysicalDevice device, vk::SurfaceKHR surface);
+	bool isExtensionsSupportedBy(vk::PhysicalDevice device);
+	bool isSurfaceSupportedBy(vk::PhysicalDevice device, vk::SurfaceKHR surface);
 
-	GraphicVulkan::GraphicVulkan() : Graphic(Api::VULKAN) {
+	GraphicVulkan::GraphicVulkan(const Window& window) : Graphic(Api::VULKAN) {
 		initializeDispatcher();
 		initializeInstance();
 		if (isDebug) { initializeDebugMessenger(); }
+		initializeSurface(window);
+		initializePhysicalDevice();
+		initializeDevice();
 	}
 	
 	void GraphicVulkan::initializeDispatcher() {
@@ -100,6 +111,102 @@ namespace poc::layers {
 				vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
 			.setPfnUserCallback(debugCallback);
 
+	}
+
+	void GraphicVulkan::initializeSurface(const Window& window) {
+		assert(*instance && "instance not initialized");
+		VkSurfaceKHR s{};
+		VkInstance i = *instance;
+		window.exposeToGraphicApi(i, &s);
+		
+		auto deleter = vk::UniqueHandleTraits<vk::SurfaceKHR, vk::DispatchLoaderDynamic>::deleter(*instance);
+		surface = vk::UniqueSurfaceKHR(s, deleter);
+		LOG("[POC::GraphicVulkan] Surface created")
+	}
+
+	void GraphicVulkan::initializePhysicalDevice() {
+		assert(*instance && "instance not initialized");
+		assert(*surface && "surface not initialized");
+
+		const auto devices = instance->enumeratePhysicalDevices();
+		if (devices.empty()) {
+			throw std::runtime_error("No GPU available for Vulkan");
+		}
+
+		for (const auto device : devices) {
+			if (isDeviceSuitable(device, *surface)) {
+				physicalDevice = device;
+				LOG("[POC::Graphic::Vulkan] Use device: " << device.getProperties().deviceName)
+				break;
+			}
+		}
+
+		if (!physicalDevice) {
+			throw std::runtime_error("No suitable GPU found");
+		}
+
+	}
+
+	bool isDeviceSuitable(const vk::PhysicalDevice device, const vk::SurfaceKHR surface) {
+		return findSuitableQueueFamily(device, surface).has_value() &&
+			isExtensionsSupportedBy(device) &&
+			isSurfaceSupportedBy(device, surface);
+	}
+
+
+	std::optional<uint32_t> findSuitableQueueFamily(const vk::PhysicalDevice device, const vk::SurfaceKHR surface) {
+		uint32_t i = 0;
+		for (const auto& queueFamily : device.getQueueFamilyProperties()) {
+			if ((queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) && device.getSurfaceSupportKHR(i, surface)) {
+				return std::make_optional<uint32_t>(i);
+			}
+			i++;
+		}
+		return std::make_optional<uint32_t>();
+	}
+	
+	bool isExtensionsSupportedBy(const vk::PhysicalDevice device) {
+		std::vector<vk::ExtensionProperties> extensions = device.enumerateDeviceExtensionProperties();
+		std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+		for (const auto& extension : extensions) {
+			requiredExtensions.erase(extension.extensionName.data());
+		}
+		return requiredExtensions.empty();
+	}
+
+	bool isSurfaceSupportedBy(const vk::PhysicalDevice device, const vk::SurfaceKHR surface) {
+		auto formats = device.getSurfaceFormatsKHR(surface);
+		if (formats.empty()) { return false; }
+
+		auto modes = device.getSurfacePresentModesKHR(surface);
+		if (modes.empty()) { return false; }
+
+		return true;
+	}
+
+	void GraphicVulkan::initializeDevice() {
+		assert(physicalDevice && "physicalDevice not initialized");
+		assert(*surface && "surface not initialized");
+
+		std::optional<uint32_t> queueIndex = findSuitableQueueFamily(physicalDevice, *surface);
+		assert(queueIndex && "no suitable queue found");
+
+		float queuePriority = 1.0f;
+		auto queueInfo = vk::DeviceQueueCreateInfo()
+			.setQueueFamilyIndex(queueIndex.value())
+			.setPQueuePriorities(&queuePriority)
+			.setQueueCount(1);
+
+		auto createInfo = vk::DeviceCreateInfo()
+			.setQueueCreateInfoCount(1)
+			.setPQueueCreateInfos(&queueInfo)
+			.setEnabledExtensionCount(static_cast<uint32_t>(deviceExtensions.size()))
+			.setPpEnabledExtensionNames(deviceExtensions.data());
+
+		device = physicalDevice.createDeviceUnique(createInfo);
+		graphicQueue = device->getQueue(queueIndex.value(), 0);
+		presentQueue = device->getQueue(queueIndex.value(), 0);
+		LOG("[POC::GraphicVulkan] Device created")
 	}
 
 }

@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "window.h"
+
 namespace poc::layers {
 
 	class Graphic {
@@ -17,7 +19,7 @@ namespace poc::layers {
 		Api getApi() const;
 		virtual ~Graphic();
 
-		static Graphic* createGraphicApi(Api api);
+		static std::unique_ptr<Graphic> createGraphicApi(const Window& window, Api api);
 		static std::string toString(Api api);
 
 	protected:

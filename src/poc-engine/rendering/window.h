@@ -1,7 +1,7 @@
 #pragma once
 
+#include <functional>
 #include <string>
-#include "graphic.h"
 
 namespace poc::layers {
 
@@ -9,11 +9,14 @@ namespace poc::layers {
 
 	public:
 
+		static std::unique_ptr<Window> openWindow(int width, int height, const std::string& title);
+
 		virtual bool isClosing() = 0;
 		virtual void update() = 0;
 		virtual ~Window() = 0;
 
-		static Window* createWindow(int width, int height, std::string title, Graphic::Api api);
+		template<class C, class H>
+		void exposeToGraphicApi(const C& context, H* handler) const;
 
 	protected:
 
@@ -24,5 +27,7 @@ namespace poc::layers {
 		static bool created;
 
 	};
+
+	
 
 }

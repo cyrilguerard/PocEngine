@@ -19,11 +19,11 @@ namespace poc::layers {
 		return api;
 	}
 
-	Graphic* Graphic::createGraphicApi(Api api) {
+	std::unique_ptr<Graphic> Graphic::createGraphicApi(const Window& window, Api api) {
 		assert(!created && "Graphic API already created");
 		switch (api) {
 		case Api::VULKAN:
-			return new GraphicVulkan();
+			return std::unique_ptr<Graphic> { new GraphicVulkan(window) };
 		default:
 			assert(0 && "Unsupported Graphic API");
 		}

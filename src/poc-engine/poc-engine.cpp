@@ -11,8 +11,8 @@ void poc::PocEngine::run()
 {
 	std::cout << "[POC::PocEngine] Starting..." << std::endl;
 	
-	auto renderingSystem = systems::RenderingSystem();
-	auto window = renderingSystem.openWindow(1024, 768, "PocEngine");
+	auto window = layers::Window::openWindow(1024, 768, "PocEngine");
+	auto renderingSystem = systems::RenderingSystem(*window.get());
 
 	std::cout << "[POC::PocEngine] Started" << std::endl;
 

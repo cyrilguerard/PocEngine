@@ -18,4 +18,4 @@
 
 #include <vector>
 
-void registerWindowVulkanExtensions(std::vector<const char*> extensions);
+void registerWindowVulkanExtensions(std::vector<const char*>& extensions);

@@ -9,15 +9,13 @@ namespace poc::systems {
 
 	public:
 
-		RenderingSystem();
-		~RenderingSystem();
-		poc::layers::Window* openWindow(int width, int height, std::string title);
+		RenderingSystem(const poc::layers::Window& window);
+
 		void render();
 
 	private:
 
-		poc::layers::Window* window = nullptr;
-		poc::layers::Graphic* graphics = nullptr;
+		std::unique_ptr<poc::layers::Graphic> graphics;
 
 	};
 
