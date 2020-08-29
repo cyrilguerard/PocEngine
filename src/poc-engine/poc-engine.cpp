@@ -2,27 +2,30 @@
 
 #include "poc-engine.h"
 
+#include "core/logger.hpp"
 #include "rendering/window.h"
 #include "rendering/rendering-system.h"
 
 using namespace poc;
 
+const std::string PocEngine::tag = "POC::PocEngine";
+
 void poc::PocEngine::run()
 {
-	std::cout << "[POC::PocEngine] Starting..." << std::endl;
+	Logger::info(tag, "Starting...");
 	
 	auto window = layers::Window::openWindow(1024, 768, "PocEngine");
 	auto renderingSystem = systems::RenderingSystem(*window.get());
 
-	std::cout << "[POC::PocEngine] Started" << std::endl;
+	Logger::info(tag, "Started");
 
 	while (!window->isClosing()) {
 		window->update();
 		renderingSystem.render();
 	}
 
-	std::cout << "[POC::PocEngine] Stopping..." << std::endl;
+	Logger::info(tag, "Stopping...");
 
-	std::cout << "[POC::PocEngine] Stopped" << std::endl;
+	Logger::info(tag, "Stopped");
 
 }

@@ -9,6 +9,8 @@ namespace poc::layers {
 
 	private:
 
+		static const std::string tag;
+
 		GraphicVulkan(const Window& window);
 
 		vk::DynamicLoader loader;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace poc {
 
 	class PocEngine
@@ -8,6 +10,10 @@ namespace poc {
 	public:
 
 		void run();
+
+	private:
+
+		static const std::string tag;
 
 	};
 

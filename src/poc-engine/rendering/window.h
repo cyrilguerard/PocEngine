@@ -23,11 +23,11 @@ namespace poc::layers {
 		Window();
 
 	private:
-		
+
 		static bool created;
 
 	};
 
-	
+
 
 }

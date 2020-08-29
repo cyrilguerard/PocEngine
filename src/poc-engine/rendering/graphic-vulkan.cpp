@@ -3,6 +3,7 @@
 
 #include "../constants.h"
 #include "../debug.h"
+#include "../core/logger.hpp"
 
 #include "graphic.h"
 #include "graphic-vulkan.h"
@@ -11,11 +12,13 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace poc::layers {
 
+	const std::string GraphicVulkan::tag = "POC::GraphicVulkan";
+
 	constexpr const char* const debugLayer = "VK_LAYER_KHRONOS_validation";
 	constexpr const char* const debugExtension = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 	const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-	vk::DebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo(bool verbose = false);
+	vk::DebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo();
 	bool isDeviceSuitable(vk::PhysicalDevice device, vk::SurfaceKHR surface);
 	std::optional<uint32_t> findSuitableQueueFamily(vk::PhysicalDevice device, vk::SurfaceKHR surface);
 	bool isExtensionsSupportedBy(vk::PhysicalDevice device);
@@ -29,7 +32,7 @@ namespace poc::layers {
 		initializePhysicalDevice();
 		initializeDevice();
 	}
-	
+
 	void GraphicVulkan::initializeDispatcher() {
 		PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = loader.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
@@ -64,13 +67,13 @@ namespace poc::layers {
 			// enable debug extension 
 			extensions.push_back(debugExtension);
 		}
-		
+
 		createInfo.setEnabledExtensionCount(static_cast<uint32_t>(extensions.size()));
 		createInfo.setPpEnabledExtensionNames(extensions.data());
 
 		instance = vk::createInstanceUnique(createInfo);
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
-		LOG("[POC::GraphicVulkan] Instance created")
+		Logger::info(tag, "Instance created");
 	}
 
 	void GraphicVulkan::initializeDebugMessenger() {
@@ -78,39 +81,51 @@ namespace poc::layers {
 
 		auto createInfo = createDebugMessengerCreateInfo();
 		debugMessenger = instance->createDebugUtilsMessengerEXTUnique(createInfo);
-		LOG("[POC::GraphicVulkan] Debug messenger created")
+		Logger::info(tag, "Debug messenger created");
 	}
 
 	VkBool32 VKAPI_PTR debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT			messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT					messageTypes,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData) {
-		auto ms = static_cast<vk::DebugUtilsMessageSeverityFlagBitsEXT>(messageSeverity);
+		void*) {
+
 		auto mt = static_cast<vk::DebugUtilsMessageTypeFlagBitsEXT>(messageTypes);
-		LOG("[POC::Graphic::Vulkan][" << vk::to_string(mt) << "][" << vk::to_string(ms) << "] " << pCallbackData->pMessage)
+
+		const std::string tag = "Vulkan/" + vk::to_string(mt);
+		switch (messageSeverity)
+		{
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+			Logger::debug(tag, pCallbackData->pMessage);
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+			Logger::warn(tag, pCallbackData->pMessage);
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+			Logger::error(tag, pCallbackData->pMessage);
+			break;
+		default:
+			break;
+		}
+
 		return VK_FALSE;
 	}
 
-	vk::DebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo(bool verbose) {
-
-		vk::DebugUtilsMessageSeverityFlagsEXT severity =
-			vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
-			vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
-
-		if (verbose) {
-			severity |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo;
-			severity |= vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose;
-		}
-
+	vk::DebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo() {
 		return vk::DebugUtilsMessengerCreateInfoEXT()
-			.setMessageSeverity(severity)
+			.setMessageSeverity(
+				vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+				vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+				vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
+				vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose
+			)
 			.setMessageType(
 				vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
 				vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
-				vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
+				vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance
+			)
 			.setPfnUserCallback(debugCallback);
-
 	}
 
 	void GraphicVulkan::initializeSurface(const Window& window) {
@@ -118,10 +133,10 @@ namespace poc::layers {
 		VkSurfaceKHR s{};
 		VkInstance i = *instance;
 		window.exposeToGraphicApi(i, &s);
-		
+
 		auto deleter = vk::UniqueHandleTraits<vk::SurfaceKHR, vk::DispatchLoaderDynamic>::deleter(*instance);
 		surface = vk::UniqueSurfaceKHR(s, deleter);
-		LOG("[POC::GraphicVulkan] Surface created")
+		Logger::info(tag, "Surface created");
 	}
 
 	void GraphicVulkan::initializePhysicalDevice() {
@@ -130,18 +145,19 @@ namespace poc::layers {
 
 		const auto devices = instance->enumeratePhysicalDevices();
 		if (devices.empty()) {
-			throw std::runtime_error("No GPU available for Vulkan");
+			throw std::runtime_error("No GPU available");
 		}
 
-		for (const auto device : devices) {
-			if (isDeviceSuitable(device, *surface)) {
-				physicalDevice = device;
-				LOG("[POC::Graphic::Vulkan] Use device: " << device.getProperties().deviceName)
+		for (const auto d : devices) {
+			if (isDeviceSuitable(d, *surface)) {
+				physicalDevice = d;
+				Logger::info(tag, "Use GPU:" + std::string(d.getProperties().deviceName));
 				break;
 			}
 		}
 
 		if (!physicalDevice) {
+			Logger::error(tag, "No suitable GPU found");
 			throw std::runtime_error("No suitable GPU found");
 		}
 
@@ -164,7 +180,7 @@ namespace poc::layers {
 		}
 		return std::make_optional<uint32_t>();
 	}
-	
+
 	bool isExtensionsSupportedBy(const vk::PhysicalDevice device) {
 		std::vector<vk::ExtensionProperties> extensions = device.enumerateDeviceExtensionProperties();
 		std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
@@ -206,7 +222,7 @@ namespace poc::layers {
 		device = physicalDevice.createDeviceUnique(createInfo);
 		graphicQueue = device->getQueue(queueIndex.value(), 0);
 		presentQueue = device->getQueue(queueIndex.value(), 0);
-		LOG("[POC::GraphicVulkan] Device created")
+		Logger::info(tag, "Device created");
 	}
 
 }

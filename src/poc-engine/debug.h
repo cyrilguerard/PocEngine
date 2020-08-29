@@ -10,7 +10,4 @@ constexpr bool isDebug = false;
 
 constexpr bool isDebug = true;
 
-#include <iostream>
-#define LOG(x) std::cerr << x << std::endl;
-
 #endif

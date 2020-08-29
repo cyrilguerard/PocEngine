@@ -1,7 +1,6 @@
-﻿#find_package(glfw3 3.3 REQUIRED)
-
-file(GLOB_RECURSE POC_ENGINE_SRC_DIR
+﻿file(GLOB_RECURSE POC_ENGINE_SRC_DIR
 	${PROJECT_SOURCE_DIR}/poc-engine/*.h
+	${PROJECT_SOURCE_DIR}/poc-engine/*.hpp
 	${PROJECT_SOURCE_DIR}/poc-engine/*.cpp)
 	
 add_library(poc-engine STATIC ${POC_ENGINE_SRC_DIR})
