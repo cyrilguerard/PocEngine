@@ -1,31 +1,44 @@
 #include <iostream>
 
-#include "poc-engine.h"
+#include "poc-engine.hpp"
 
 #include "core/logger.hpp"
-#include "rendering/window.h"
-#include "rendering/rendering-system.h"
+#include "plateform/window.hpp"
+#include "rendering/graphic-api.hpp"
+#include "rendering/rendering-system.hpp"
 
 using namespace poc;
 
-const std::string PocEngine::tag = "POC::PocEngine";
+namespace poc {
 
-void poc::PocEngine::run()
-{
-	Logger::info(tag, "Starting...");
-	
-	auto window = layers::Window::openWindow(1024, 768, "PocEngine");
-	auto renderingSystem = systems::RenderingSystem(*window.get());
+	static constexpr char logTag[]{ "POC::PocEngine" };
 
-	Logger::info(tag, "Started");
+	class PocEngineImpl : public PocEngine {
 
-	while (!window->isClosing()) {
-		window->update();
-		renderingSystem.render();
+		void run() override
+		{
+			Logger::info(logTag, "Starting...");
+
+			auto window = Window::openWindow(1024, 768, "PocEngine");
+			auto renderingSystem = RenderingSystem::make(*window, GraphicApi::Type::VULKAN);
+
+			Logger::info(logTag, "Started");
+
+			while (!window->isClosing()) {
+				window->update();
+				renderingSystem->render();
+			}
+
+			Logger::info(logTag, "Stopping...");
+
+			Logger::info(logTag, "Stopped");
+
+		}
+
+	};
+
+	std::unique_ptr<PocEngine> PocEngine::make() {
+		return std::make_unique<PocEngineImpl>();
 	}
-
-	Logger::info(tag, "Stopping...");
-
-	Logger::info(tag, "Stopped");
 
 }

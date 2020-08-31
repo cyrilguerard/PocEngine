@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <string_view>
 
 namespace poc {
 
@@ -17,11 +18,11 @@ namespace poc {
 #ifdef NDEBUG
 
 		inline void setLoggerLevel(const Level level) {}
-		inline void debug(const std::string& tag, const std::string& msg) {}
-		inline void info(const std::string& tag, const std::string& msg) {}
-		inline void warn(const std::string& tag, const std::string& msg) {}
-		inline void error(const std::string& tag, const std::string& msg) {}
-		inline void log(const Level level, const std::string& tag, const std::string& msg) {}
+		inline void debug(const std::string_view& tag, const std::string& msg) {}
+		inline void info(const std::string_view& tag, const std::string& msg) {}
+		inline void warn(const std::string_view& tag, const std::string& msg) {}
+		inline void error(const std::string_view& tag, const std::string& msg) {}
+		inline void log(const Level level, const std::string_view& tag, const std::string& msg) {}
 #else
 
 		static Level loggerLevel = Level::INFO;
@@ -31,7 +32,7 @@ namespace poc {
 		}
 
 		// Log format: LEVEL --- [TAG] Log message
-		inline void log(const Level level, const std::string& tag, const std::string& msg) {
+		inline void log(const Level level, const std::string_view& tag, const std::string& msg) {
 			if (loggerLevel <= level) {
 				switch (level)
 				{
@@ -53,19 +54,19 @@ namespace poc {
 			}
 		}
 
-		inline void debug(const std::string& tag, const std::string& msg) {
+		inline void debug(const std::string_view& tag, const std::string& msg) {
 			log(Level::DEBUG, tag, msg);
 		}
 
-		inline void info(const std::string& tag, const std::string& msg) {
+		inline void info(const std::string_view& tag, const std::string& msg) {
 			log(Level::INFO, tag, msg);
 		}
 
-		inline void warn(const std::string& tag, const std::string& msg) {
+		inline void warn(const std::string_view& tag, const std::string& msg) {
 			log(Level::WARN, tag, msg);
 		}
 
-		inline void error(const std::string& tag, const std::string& msg) {
+		inline void error(const std::string_view& tag, const std::string& msg) {
 			log(Level::ERROR, tag, msg);
 		}
 

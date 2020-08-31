@@ -1,4 +1,4 @@
-#include "platform.h"
+#include "platform.hpp"
 
 #if defined( POC_LAYERS_WINDOW_USE_GLFW3 )
 
@@ -9,5 +9,9 @@ void registerWindowVulkanExtensions(std::vector<const char*>& extensions) {
 		extensions.push_back(requiredExtensions[i]);
 	}
 }
+
+#else
+
+void registerWindowVulkanExtensions(std::vector<const char*>& extensions) { }
 
 #endif

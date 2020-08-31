@@ -1,5 +1,4 @@
 ﻿file(GLOB_RECURSE POC_ENGINE_SRC_DIR
-	${PROJECT_SOURCE_DIR}/poc-engine/*.h
 	${PROJECT_SOURCE_DIR}/poc-engine/*.hpp
 	${PROJECT_SOURCE_DIR}/poc-engine/*.cpp)
 	

@@ -1,13 +1,28 @@
-#include "rendering-system.h"
+#include "rendering-system.hpp"
 
-namespace poc::systems {
+#include <cassert>
 
-	RenderingSystem::RenderingSystem(const poc::layers::Window& window) {
-		graphics = poc::layers::Graphic::createGraphicApi(window, poc::layers::Graphic::Api::VULKAN);
-	}
+using namespace poc;
 
-	void RenderingSystem::render() {
-		
+namespace poc {
+
+	class RenderingSystemImpl : public RenderingSystem {
+	public:
+
+		RenderingSystemImpl(const Window& window, GraphicApi::Type type) :
+			graphicApi(GraphicApi::make(window, type)) {
+		}
+
+		void render() override {}
+
+	private:
+
+		std::unique_ptr<GraphicApi> graphicApi;
+
+	};
+
+	std::unique_ptr<RenderingSystem> RenderingSystem::make(const Window& window, GraphicApi::Type type) {
+		return std::make_unique<RenderingSystemImpl>(window, type);
 	}
 
 }

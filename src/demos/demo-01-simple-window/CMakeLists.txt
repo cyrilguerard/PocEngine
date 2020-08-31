@@ -1,7 +1,7 @@
 ﻿set(DEMO_NAME demo-01-simple-window)
 
 file(GLOB_RECURSE DEMO_SRC_DIR
-	${PROJECT_SOURCE_DIR}/demos/${DEMO_NAME}/*.h
+	${PROJECT_SOURCE_DIR}/demos/${DEMO_NAME}/*.hpp
 	${PROJECT_SOURCE_DIR}/demos/${DEMO_NAME}/*.cpp)
 
 add_executable(${DEMO_NAME} ${DEMO_SRC_DIR})
