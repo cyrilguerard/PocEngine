@@ -29,7 +29,14 @@ namespace poc {
 			glfwTerminate();
 		}
 
-		virtual bool isClosing() override {
+		virtual Size getDrawableSurfaceSize() const override {
+			int width = 0;
+			int height = 0;
+			glfwGetFramebufferSize(window, &width, &height);
+			return Size{ static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
+		}
+
+		virtual bool isClosing() const override {
 			return glfwWindowShouldClose(window);
 		}
 

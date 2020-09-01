@@ -17,7 +17,7 @@ namespace poc {
 		{
 			Logger::info(logTag, "Starting...");
 
-			const auto window = Window::openWindow(1024, 768, "PocEngine");
+			const auto window = Window::openWindow(1280, 720, "PocEngine");
 			const auto renderingSystem = RenderingSystem::make(*window, GraphicApi::Type::VULKAN);
 
 			Logger::info(logTag, "Started");

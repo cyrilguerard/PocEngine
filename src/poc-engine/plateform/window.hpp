@@ -8,7 +8,13 @@ namespace poc {
 	class Window {
 	public:
 
-		virtual bool isClosing() = 0;
+		struct Size {
+			uint32_t width;
+			uint32_t height;
+		};
+
+		virtual Size getDrawableSurfaceSize() const = 0;
+		virtual bool isClosing() const = 0;
 		virtual void update() = 0;
 		virtual ~Window() {};
 

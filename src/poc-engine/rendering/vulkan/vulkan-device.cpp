@@ -106,10 +106,27 @@ namespace poc {
 		vk::Queue graphicQueue;
 		vk::Queue presentationQueue;
 
+		friend VulkanDevice;
 	};
 
 	VulkanDevice::VulkanDevice(const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface) :
 		pimpl(make_unique_pimpl<VulkanDevice::Impl>(physicalDevice, surface)) { }
+
+	const vk::Device VulkanDevice::getDevice() const {
+		return *pimpl->device;
+	}
+
+	const bool VulkanDevice::hasDistinctPresentationQueue() const {
+		return !pimpl->queueConfig.useSameQueue();
+	}
+
+	const uint32_t VulkanDevice::getGraphicsQueueIndex() const {
+		return pimpl->queueConfig.graphicsQueueIndex.value();
+	}
+
+	const uint32_t VulkanDevice::getPresentationQueueIndex() const {
+		return pimpl->queueConfig.presentationQueueIndex.value();
+	}
 
 }
 
