@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "poc-engine.hpp"
 
 #include "core/logger.hpp"
@@ -19,8 +17,8 @@ namespace poc {
 		{
 			Logger::info(logTag, "Starting...");
 
-			auto window = Window::openWindow(1024, 768, "PocEngine");
-			auto renderingSystem = RenderingSystem::make(*window, GraphicApi::Type::VULKAN);
+			const auto window = Window::openWindow(1024, 768, "PocEngine");
+			const auto renderingSystem = RenderingSystem::make(*window, GraphicApi::Type::VULKAN);
 
 			Logger::info(logTag, "Started");
 

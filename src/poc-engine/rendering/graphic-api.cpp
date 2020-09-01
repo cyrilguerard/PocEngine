@@ -1,6 +1,7 @@
+#include "graphic-api.hpp"
+
 #include <cassert>
 
-#include "graphic-api.hpp"
 #include "vulkan/vulkan-api.hpp"
 
 using namespace poc;

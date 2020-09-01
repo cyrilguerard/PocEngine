@@ -1,8 +1,8 @@
+#include "vulkan-physical-device.hpp"
+
 #include <algorithm>
 #include <set>
 #include <vector>
-
-#include "vulkan-physical-device.hpp"
 
 #include "../../core/logger.hpp"
 
@@ -12,7 +12,7 @@ namespace poc {
 
 	static constexpr char logTag[]{ "POC::VulkanPhysicalDevice" };
 
-	static bool isRequiredQueueFamiliesProvidedBy(const vk::PhysicalDevice& physicalDevice, const VulkanSurface& surface) {
+	static bool isRequiredQueueFamiliesProvidedBy(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface) {
 		const std::vector<vk::QueueFamilyProperties> properties = physicalDevice.getQueueFamilyProperties();
 
 		const bool graphicQueueFound = std::any_of(properties.cbegin(), properties.cend(), [](const auto qf) {
@@ -20,7 +20,7 @@ namespace poc {
 			});
 
 		const bool presentationQueueFound = std::any_of(properties.cbegin(), properties.cend(), [i = 0, &physicalDevice, &surface](const auto) mutable {
-			return physicalDevice.getSurfaceSupportKHR(i++, surface.getSurface());
+			return physicalDevice.getSurfaceSupportKHR(i++, surface);
 		});
 
 		return graphicQueueFound && presentationQueueFound;
@@ -36,21 +36,23 @@ namespace poc {
 
 	}
 
-	bool isSurfaceCompatibleWith(const vk::PhysicalDevice device, const VulkanSurface& surface) {
-		auto formats = device.getSurfaceFormatsKHR(surface.getSurface());
-		auto modes = device.getSurfacePresentModesKHR(surface.getSurface());
+	bool isSurfaceCompatibleWith(const vk::PhysicalDevice device, const vk::SurfaceKHR& surface) {
+		const auto formats = device.getSurfaceFormatsKHR(surface);
+		const auto modes = device.getSurfacePresentModesKHR(surface);
 		return !formats.empty() && !modes.empty();
 	}
 
-	static bool isDeviceSuitable(const vk::PhysicalDevice& physicalDevice, const VulkanSurface& surface) {
+	static bool isDeviceSuitable(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface) {
 		return isRequiredExtensionsSupportedBy(physicalDevice) &&
 			isRequiredQueueFamiliesProvidedBy(physicalDevice, surface) &&
 			isSurfaceCompatibleWith(physicalDevice, surface);
 	}
 
-	static vk::PhysicalDevice selectPhysicalDevice(const VulkanInstance& instance, const VulkanSurface& surface) {
+	static vk::PhysicalDevice selectPhysicalDevice(const vk::Instance& instance, const vk::SurfaceKHR& surface) {
+		assert(instance && "instance not initialized");
+		assert(surface && "surface not initialized");
 
-		std::vector<vk::PhysicalDevice> devices = instance.getInstance().enumeratePhysicalDevices();
+		std::vector<vk::PhysicalDevice> devices = instance.enumeratePhysicalDevices();
 		if (devices.empty()) {
 			Logger::error(logTag, "No GPU available");
 			throw std::runtime_error("No GPU available");
@@ -64,7 +66,7 @@ namespace poc {
 		}
 
 		// use discrete CPU in priority as more powerful than integrated CPU 
-		auto it = std::find_if(devices.cbegin(), devices.cend(),
+		const auto it = std::find_if(devices.cbegin(), devices.cend(),
 			[](const auto pd) { return pd.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu; });
 		if (it != devices.cend()) {
 			return *it;
@@ -79,7 +81,7 @@ namespace poc {
 	public:
 
 		Impl(const VulkanInstance& instance, const VulkanSurface& surface) :
-			physicalDevice(selectPhysicalDevice(instance, surface)) {
+			physicalDevice(selectPhysicalDevice(instance.getInstance(), surface.getSurface())) {
 
 			Logger::info(logTag, "GPU chosen: " + std::string(physicalDevice.getProperties().deviceName));
 		}

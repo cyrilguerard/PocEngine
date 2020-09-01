@@ -2,7 +2,6 @@
 
 #include "../../core/pimpl_ptr.hpp"
 #include "../../plateform/window.hpp"
-
 #include "../graphic-api.hpp"
 
 namespace poc {

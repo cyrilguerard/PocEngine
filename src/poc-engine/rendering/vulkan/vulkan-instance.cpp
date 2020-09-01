@@ -24,7 +24,7 @@ namespace poc {
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void*) {
 
-		auto mt = static_cast<vk::DebugUtilsMessageTypeFlagBitsEXT>(messageTypes);
+		const auto mt = static_cast<vk::DebugUtilsMessageTypeFlagBitsEXT>(messageTypes);
 
 		const std::string tag = "Vulkan/" + vk::to_string(mt);
 		switch (messageSeverity)
@@ -103,11 +103,11 @@ namespace poc {
 		return instance;
 	}
 
-	static vk::UniqueDebugUtilsMessengerEXT createDebugMessenger(vk::Instance instance) {
+	static vk::UniqueDebugUtilsMessengerEXT createDebugMessenger(const vk::Instance& instance) {
 		assert(instance && "instance not initialized");
 
 		if (isDebug) {
-			auto createInfo = createDebugMessengerCreateInfo();
+			const auto createInfo = createDebugMessengerCreateInfo();
 			auto debugMessenger = instance.createDebugUtilsMessengerEXTUnique(createInfo);
 			Logger::info(logTag, "Debug messenger created");
 			return debugMessenger;

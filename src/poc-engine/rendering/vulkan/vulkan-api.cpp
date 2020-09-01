@@ -1,10 +1,10 @@
 #include "vulkan-api.hpp"
 
 #include "../../core/logger.hpp"
-#include "vulkan-instance.hpp"
-#include "vulkan-surface.hpp"
-#include "vulkan-physical-device.hpp"
 #include "vulkan-device.hpp"
+#include "vulkan-instance.hpp"
+#include "vulkan-physical-device.hpp"
+#include "vulkan-surface.hpp"
 
 using namespace poc;
 

@@ -17,17 +17,19 @@ namespace poc {
 		std::optional<uint32_t> graphicsQueueIndex;
 		std::optional<uint32_t> presentationQueueIndex;
 
-		bool isComplete() {
+		bool isComplete() const {
 			return graphicsQueueIndex.has_value() && presentationQueueIndex.has_value();
 		}
 
-		bool useSameQueue() {
+		bool useSameQueue() const {
 			return isComplete() && (graphicsQueueIndex == presentationQueueIndex);
 		}
 
 	};
 
 	static QueueConfig getQueueConfig(const vk::PhysicalDevice& physicalDevice, const vk::SurfaceKHR& surface) {
+		assert(physicalDevice && "physicalDevice not initialized");
+		assert(surface && "surface not initialized");
 
 		QueueConfig config{};
 		const std::vector<vk::QueueFamilyProperties> queueFamilies = physicalDevice.getQueueFamilyProperties();
@@ -56,10 +58,11 @@ namespace poc {
 	}
 
 	static vk::UniqueDevice createDevice(const QueueConfig& config, const vk::PhysicalDevice& physicalDevice) {
+		assert(physicalDevice && "physicalDevice not initialized");
 
 		const std::set<uint32_t> queueIndexes{ *config.graphicsQueueIndex, *config.presentationQueueIndex };
 
-		float queuePriority = 1.0f;
+		const float queuePriority = 1.0f;
 		std::vector<vk::DeviceQueueCreateInfo> queueInfos(queueIndexes.size());
 		std::for_each(queueIndexes.cbegin(), queueIndexes.cend(),
 			[i = 0, &queueInfos, &queuePriority](uint32_t queueIndex) mutable {
@@ -80,7 +83,8 @@ namespace poc {
 		return physicalDevice.createDeviceUnique(createInfo);
 	}
 
-	static vk::Queue getQueue(vk::Device device, uint32_t queueIndex) {
+	static vk::Queue getQueue(const vk::Device& device, uint32_t queueIndex) {
+		assert(device && "device not initialized");
 		return device.getQueue(queueIndex, 0);
 	}
 
