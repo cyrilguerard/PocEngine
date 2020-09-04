@@ -18,6 +18,9 @@ namespace poc {
 			const VulkanSurface& surface,
 			const Window& window);
 
+		const vk::SwapchainKHR& getSwapchain() const;
+		const vk::Format& getFormat() const;
+
 	private:
 		class Impl;
 		pimpl_ptr<Impl> pimpl;

@@ -10,6 +10,25 @@ namespace poc {
 
 	static constexpr char logTag[]{ "POC::VulkanSwapchain" };
 
+	static vk::SurfaceFormatKHR selectSurfaceFormat(const vk::PhysicalDevice physicalDevice, const vk::SurfaceKHR& surface) {
+		assert(physicalDevice && "physicalDevice not initialized");
+		assert(surface && "surface not initialized");
+
+		const std::vector<vk::SurfaceFormatKHR> formats = physicalDevice.getSurfaceFormatsKHR(surface);
+		assert(!formats.empty() && "no supported formats");
+
+		const auto it = std::find_if(formats.cbegin(), formats.cend(),
+			[](const auto& format) {
+				return format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
+			});
+		if (it != formats.cend()) {
+			return *it;
+		}
+
+		// else take the fist one
+		return formats[0];
+	}
+
 	static uint32_t computeMinImageCount(const vk::SurfaceCapabilitiesKHR& capabilities) {
 
 		// use triple buffering by default
@@ -54,26 +73,11 @@ namespace poc {
 		return vk::PresentModeKHR::eFifo;
 	}
 
-	static vk::SurfaceFormatKHR selectSurfaceFormat(const vk::PhysicalDevice physicalDevice, const vk::SurfaceKHR& surface) {
-		const std::vector<vk::SurfaceFormatKHR> formats = physicalDevice.getSurfaceFormatsKHR(surface);
-		assert(!formats.empty() && "no supported formats");
-
-		const auto it = std::find_if(formats.cbegin(), formats.cend(),
-			[](const auto& format) {
-				return format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
-			});
-		if (it != formats.cend()) {
-			return *it;
-		}
-
-		// else take the fist one
-		return formats[0];
-	}
-
 	static vk::UniqueSwapchainKHR createSwapchain(
 		const VulkanDevice& device,
 		const vk::PhysicalDevice physicalDevice,
 		const vk::SurfaceKHR& surface,
+		const vk::SurfaceFormatKHR& imageFormat,
 		const Window& window) {
 
 		assert(device.getDevice() && "device not initialized");
@@ -84,13 +88,12 @@ namespace poc {
 		const auto minImageCount = computeMinImageCount(surfaceCapabilities);
 		const auto imageExtent = computeImageExtent(surfaceCapabilities, window);
 		const auto presentMode = selectPresentMode(physicalDevice, surface);
-		const auto format = selectSurfaceFormat(physicalDevice, surface);
 
 		auto createInfo = vk::SwapchainCreateInfoKHR()
 			.setSurface(surface)
 			.setMinImageCount(minImageCount)
-			.setImageFormat(format.format)
-			.setImageColorSpace(format.colorSpace)
+			.setImageFormat(imageFormat.format)
+			.setImageColorSpace(imageFormat.colorSpace)
 			.setImageExtent(imageExtent)
 			.setImageArrayLayers(1)
 			.setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
@@ -113,6 +116,10 @@ namespace poc {
 		return device.getDevice().createSwapchainKHRUnique(createInfo);
 	}
 
+	static std::vector<vk::Image> createImages(const vk::Device& device, const vk::SwapchainKHR& swapchain) {
+		return device.getSwapchainImagesKHR(swapchain);
+	}
+
 	class VulkanSwapchain::Impl {
 	public:
 
@@ -121,14 +128,20 @@ namespace poc {
 			const VulkanPhysicalDevice& physicalDevice,
 			const VulkanSurface& surface,
 			const Window& window) :
-			swapchain(createSwapchain(device, physicalDevice.getPhysicalDevice(), surface.getSurface(), window)) {
+			imageFormat(selectSurfaceFormat(physicalDevice.getPhysicalDevice(), surface.getSurface())),
+			swapchain(createSwapchain(device, physicalDevice.getPhysicalDevice(), surface.getSurface(), imageFormat, window)),
+			images(createImages(device.getDevice(), *swapchain)) {
 
 			Logger::info(logTag, "SwapChain created");
 		}
 
 	private:
+		vk::SurfaceFormatKHR imageFormat;
 		vk::UniqueSwapchainKHR swapchain;
 
+		std::vector<vk::Image> images;
+
+		friend VulkanSwapchain;
 	};
 
 	VulkanSwapchain::VulkanSwapchain(
@@ -138,5 +151,12 @@ namespace poc {
 		const Window& window) :
 		pimpl(make_unique_pimpl<VulkanSwapchain::Impl>(device, physicalDevice, surface, window)) { }
 
+	const vk::SwapchainKHR& VulkanSwapchain::getSwapchain() const {
+		return *pimpl->swapchain;
+	}
+
+	const vk::Format& VulkanSwapchain::getFormat() const {
+		return pimpl->imageFormat.format;
+	}
 }
 
