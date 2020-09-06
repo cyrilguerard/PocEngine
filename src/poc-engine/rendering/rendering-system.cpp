@@ -13,7 +13,9 @@ namespace poc {
 			graphicApi(GraphicApi::make(window, type)) {
 		}
 
-		void render() override {}
+		void render() override {
+			(*graphicApi).render();
+		}
 
 	private:
 

@@ -20,6 +20,7 @@ namespace poc {
 
 		const vk::SwapchainKHR& getSwapchain() const;
 		const vk::Format& getFormat() const;
+		const vk::Extent2D& getExtent() const;
 
 	private:
 		class Impl;

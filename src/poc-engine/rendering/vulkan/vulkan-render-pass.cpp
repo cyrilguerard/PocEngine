@@ -64,10 +64,15 @@ namespace poc {
 	private:
 		vk::UniqueRenderPass renderPass;
 
+		friend VulkanRenderPass;
 	};
 
 	VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const VulkanSwapchain& swapchain) :
 		pimpl(make_unique_pimpl<VulkanRenderPass::Impl>(device, swapchain)) { }
+
+	const vk::RenderPass& VulkanRenderPass::getRenderPass() const {
+		return *pimpl->renderPass;
+	}
 
 }
 

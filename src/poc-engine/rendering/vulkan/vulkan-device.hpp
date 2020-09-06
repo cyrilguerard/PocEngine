@@ -13,9 +13,13 @@ namespace poc {
 
 		const vk::Device getDevice() const;
 
-		const bool hasDistinctPresentationQueue() const;
 		const uint32_t getGraphicsQueueIndex() const;
+		const vk::Queue& getGraphicsQueue() const;
+
 		const uint32_t getPresentationQueueIndex() const;
+		const vk::Queue& getPresentationQueue() const;
+
+		const bool hasDistinctPresentationQueue() const;
 
 	private:
 		class Impl;

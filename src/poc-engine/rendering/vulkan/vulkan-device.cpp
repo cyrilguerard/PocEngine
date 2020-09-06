@@ -116,16 +116,24 @@ namespace poc {
 		return *pimpl->device;
 	}
 
-	const bool VulkanDevice::hasDistinctPresentationQueue() const {
-		return !pimpl->queueConfig.useSameQueue();
-	}
-
 	const uint32_t VulkanDevice::getGraphicsQueueIndex() const {
 		return pimpl->queueConfig.graphicsQueueIndex.value();
 	}
 
+	const vk::Queue& VulkanDevice::getGraphicsQueue() const {
+		return pimpl->graphicQueue;
+	}
+
 	const uint32_t VulkanDevice::getPresentationQueueIndex() const {
 		return pimpl->queueConfig.presentationQueueIndex.value();
+	}
+
+	const vk::Queue& VulkanDevice::getPresentationQueue() const {
+		return pimpl->presentationQueue;
+	}
+
+	const bool VulkanDevice::hasDistinctPresentationQueue() const {
+		return !pimpl->queueConfig.useSameQueue();
 	}
 
 }

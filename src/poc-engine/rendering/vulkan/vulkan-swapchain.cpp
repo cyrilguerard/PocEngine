@@ -10,7 +10,7 @@ namespace poc {
 
 	static constexpr char logTag[]{ "POC::VulkanSwapchain" };
 
-	static vk::SurfaceFormatKHR selectSurfaceFormat(const vk::PhysicalDevice physicalDevice, const vk::SurfaceKHR& surface) {
+	static vk::SurfaceFormatKHR getImageFormat(const vk::PhysicalDevice physicalDevice, const vk::SurfaceKHR& surface) {
 		assert(physicalDevice && "physicalDevice not initialized");
 		assert(surface && "surface not initialized");
 
@@ -27,6 +27,22 @@ namespace poc {
 
 		// else take the fist one
 		return formats[0];
+	}
+
+	static vk::Extent2D getImageExtent(const vk::PhysicalDevice physicalDevice, const vk::SurfaceKHR& surface, const Window& window) {
+		assert(physicalDevice && "physicalDevice not initialized");
+
+		const auto capabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
+		if (capabilities.currentExtent.width != 0xFFFFFFFF) { // if defined
+			return capabilities.currentExtent;
+		}
+
+		const auto [width, height] = window.getDrawableSurfaceSize();
+
+		vk::Extent2D extent;
+		extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
+		extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
+		return extent;
 	}
 
 	static uint32_t computeMinImageCount(const vk::SurfaceCapabilitiesKHR& capabilities) {
@@ -46,21 +62,6 @@ namespace poc {
 		return minImageCount;
 	}
 
-	static vk::Extent2D computeImageExtent(const vk::SurfaceCapabilitiesKHR& capabilities, const Window& window) {
-
-		// if defined
-		if (capabilities.currentExtent.width != 0xFFFFFFFF) {
-			return capabilities.currentExtent;
-		}
-
-		const auto [width, height] = window.getDrawableSurfaceSize();
-
-		vk::Extent2D extent;
-		extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
-		extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
-		return extent;
-	}
-
 	static vk::PresentModeKHR selectPresentMode(const vk::PhysicalDevice physicalDevice, const vk::SurfaceKHR& surface) {
 		const auto presentModes = physicalDevice.getSurfacePresentModesKHR(surface);
 		if (std::any_of(presentModes.cbegin(), presentModes.cend(),
@@ -78,7 +79,7 @@ namespace poc {
 		const vk::PhysicalDevice physicalDevice,
 		const vk::SurfaceKHR& surface,
 		const vk::SurfaceFormatKHR& imageFormat,
-		const Window& window) {
+		const vk::Extent2D& imageExtent) {
 
 		assert(device.getDevice() && "device not initialized");
 		assert(physicalDevice && "physicalDevice not initialized");
@@ -86,7 +87,6 @@ namespace poc {
 
 		const auto surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
 		const auto minImageCount = computeMinImageCount(surfaceCapabilities);
-		const auto imageExtent = computeImageExtent(surfaceCapabilities, window);
 		const auto presentMode = selectPresentMode(physicalDevice, surface);
 
 		auto createInfo = vk::SwapchainCreateInfoKHR()
@@ -128,15 +128,18 @@ namespace poc {
 			const VulkanPhysicalDevice& physicalDevice,
 			const VulkanSurface& surface,
 			const Window& window) :
-			imageFormat(selectSurfaceFormat(physicalDevice.getPhysicalDevice(), surface.getSurface())),
-			swapchain(createSwapchain(device, physicalDevice.getPhysicalDevice(), surface.getSurface(), imageFormat, window)),
+			imageFormat(getImageFormat(physicalDevice.getPhysicalDevice(), surface.getSurface())),
+			imageExtent(getImageExtent(physicalDevice.getPhysicalDevice(), surface.getSurface(), window)),
+			swapchain(createSwapchain(device, physicalDevice.getPhysicalDevice(), surface.getSurface(), imageFormat, imageExtent)),
 			images(createImages(device.getDevice(), *swapchain)) {
 
 			Logger::info(logTag, "SwapChain created");
 		}
 
 	private:
-		vk::SurfaceFormatKHR imageFormat;
+
+		const vk::SurfaceFormatKHR imageFormat;
+		const vk::Extent2D imageExtent;
 		vk::UniqueSwapchainKHR swapchain;
 
 		std::vector<vk::Image> images;
@@ -157,6 +160,10 @@ namespace poc {
 
 	const vk::Format& VulkanSwapchain::getFormat() const {
 		return pimpl->imageFormat.format;
+	}
+
+	const vk::Extent2D& VulkanSwapchain::getExtent() const {
+		return pimpl->imageExtent;
 	}
 }
 
