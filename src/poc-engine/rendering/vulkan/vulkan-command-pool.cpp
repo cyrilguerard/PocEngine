@@ -8,12 +8,13 @@ namespace poc {
 
 	static constexpr char logTag[]{ "POC::VulkanCommandPool" };
 
-	vk::UniqueCommandPool createCommandPool(const VulkanDevice& device) {
+	static vk::UniqueCommandPool createCommandPool(const VulkanDevice& device) {
 		assert(device.getDevice() && "device not initialized");
 
 		const auto createInfo = vk::CommandPoolCreateInfo()
 			.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
 			.setQueueFamilyIndex(device.getGraphicsQueueIndex());
+
 		return device.getDevice().createCommandPoolUnique(createInfo);
 	}
 
@@ -26,6 +27,16 @@ namespace poc {
 			Logger::info(logTag, "Command pool created");
 		}
 
+		std::vector<vk::UniqueCommandBuffer> createCommandBuffers(const vk::Device& device, const uint32_t count) {
+			assert(device && "device not initialized");
+
+			const auto allocateInfo = vk::CommandBufferAllocateInfo()
+				.setCommandPool(*commandPool)
+				.setLevel(vk::CommandBufferLevel::ePrimary)
+				.setCommandBufferCount(count);
+			return device.allocateCommandBuffersUnique(allocateInfo);
+		}
+
 	private:
 		vk::UniqueCommandPool commandPool;
 
@@ -33,6 +44,10 @@ namespace poc {
 
 	VulkanCommandPool::VulkanCommandPool(const VulkanDevice& device) :
 		pimpl(make_unique_pimpl<VulkanCommandPool::Impl>(device)) { }
+
+	std::vector<vk::UniqueCommandBuffer> VulkanCommandPool::createCommandBuffers(const VulkanDevice& device, const uint32_t count) const {
+		return pimpl->createCommandBuffers(device.getDevice(), count);
+	}
 
 }
 

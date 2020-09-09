@@ -11,7 +11,8 @@ namespace poc {
 	class VulkanPipeline {
 	public:
 
-		VulkanPipeline(const VulkanDevice& device, const VulkanSwapchain& swapchain, const VulkanRenderPass& renderPass);
+		explicit VulkanPipeline(const VulkanDevice& device, const VulkanSwapchain& swapchain, const VulkanRenderPass& renderPass);
+		const vk::Pipeline& getPipeline() const;
 
 	private:
 		class Impl;

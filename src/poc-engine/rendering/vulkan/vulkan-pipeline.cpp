@@ -11,7 +11,11 @@ namespace poc {
 
 	static constexpr char logTag[]{ "POC::VulkanPipeline" };
 
-	static vk::UniqueShaderModule createShaderModule(const vk::Device& device, const unsigned char* code, const size_t codeSize) {
+	static vk::UniqueShaderModule createShaderModule(
+		const vk::Device& device,
+		const unsigned char* code,
+		const size_t codeSize) {
+
 		const auto createInfo = vk::ShaderModuleCreateInfo()
 			.setCodeSize(codeSize)
 			.setPCode(reinterpret_cast<const uint32_t*>(code));
@@ -29,8 +33,12 @@ namespace poc {
 		return device.createPipelineLayoutUnique(createInfo);
 	}
 
-	static vk::UniquePipeline createPipeline(const vk::Device& device, const VulkanSwapchain& swapchain,
-		const vk::RenderPass& renderPass, const vk::PipelineLayout& layout) {
+	static vk::UniquePipeline createPipeline(
+		const vk::Device& device,
+		const VulkanSwapchain& swapchain,
+		const vk::RenderPass& renderPass,
+		const vk::PipelineLayout& layout) {
+
 		assert(device && "device not initialized");
 		assert(swapchain.getSwapchain() && "swapchain not initialized");
 		assert(renderPass && "renderPass not initialized");
@@ -88,7 +96,12 @@ namespace poc {
 			.setSampleShadingEnable(VK_FALSE);
 
 		const auto colorBlendAttachment = vk::PipelineColorBlendAttachmentState()
-			.setBlendEnable(VK_FALSE);
+			.setBlendEnable(VK_FALSE)
+			.setColorWriteMask(
+				vk::ColorComponentFlagBits::eR |
+				vk::ColorComponentFlagBits::eG |
+				vk::ColorComponentFlagBits::eB |
+				vk::ColorComponentFlagBits::eA);
 
 		const auto colorBlendState = vk::PipelineColorBlendStateCreateInfo()
 			.setLogicOpEnable(VK_FALSE)
@@ -129,10 +142,15 @@ namespace poc {
 		vk::UniquePipelineLayout pipelineLayout;
 		vk::UniquePipeline pipeline;
 
+		friend VulkanPipeline;
 	};
 
 	VulkanPipeline::VulkanPipeline(const VulkanDevice& device, const VulkanSwapchain& swapchain, const VulkanRenderPass& renderPass) :
 		pimpl(make_unique_pimpl<VulkanPipeline::Impl>(device, swapchain, renderPass)) { }
+
+	const vk::Pipeline& VulkanPipeline::getPipeline() const {
+		return *pimpl->pipeline;
+	}
 
 }
 

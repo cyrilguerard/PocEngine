@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "../../core/logger.hpp"
+#include "vulkan-image-view.hpp"
 
 using namespace poc;
 
@@ -116,22 +117,34 @@ namespace poc {
 		return device.getDevice().createSwapchainKHRUnique(createInfo);
 	}
 
-	static std::vector<vk::Image> createImages(const vk::Device& device, const vk::SwapchainKHR& swapchain) {
-		return device.getSwapchainImagesKHR(swapchain);
+	static std::vector<VulkanImageView> createImageViews(const vk::Device& device, const vk::SwapchainKHR& swapchain,
+		const vk::SurfaceFormatKHR& imageFormat) {
+
+		const auto images = device.getSwapchainImagesKHR(swapchain);
+
+		std::vector<VulkanImageView> views;
+		views.reserve(images.size());
+
+		std::for_each(images.cbegin(), images.cend(),
+			[&](const vk::Image image) {
+				views.push_back(VulkanImageView(device, image, imageFormat.format));
+			});
+
+		return views;
 	}
 
 	class VulkanSwapchain::Impl {
 	public:
 
 		Impl(
-			const VulkanDevice& device,
+			const Window& window,
 			const VulkanPhysicalDevice& physicalDevice,
-			const VulkanSurface& surface,
-			const Window& window) :
+			const VulkanDevice& device,
+			const VulkanSurface& surface) :
 			imageFormat(getImageFormat(physicalDevice.getPhysicalDevice(), surface.getSurface())),
 			imageExtent(getImageExtent(physicalDevice.getPhysicalDevice(), surface.getSurface(), window)),
 			swapchain(createSwapchain(device, physicalDevice.getPhysicalDevice(), surface.getSurface(), imageFormat, imageExtent)),
-			images(createImages(device.getDevice(), *swapchain)) {
+			imageViews(createImageViews(device.getDevice(), *swapchain, imageFormat)) {
 
 			Logger::info(logTag, "SwapChain created");
 		}
@@ -140,19 +153,18 @@ namespace poc {
 
 		const vk::SurfaceFormatKHR imageFormat;
 		const vk::Extent2D imageExtent;
-		vk::UniqueSwapchainKHR swapchain;
-
-		std::vector<vk::Image> images;
+		const vk::UniqueSwapchainKHR swapchain;
+		const std::vector<VulkanImageView> imageViews;
 
 		friend VulkanSwapchain;
 	};
 
 	VulkanSwapchain::VulkanSwapchain(
-		const VulkanDevice& device,
+		const Window& window,
 		const VulkanPhysicalDevice& physicalDevice,
-		const VulkanSurface& surface,
-		const Window& window) :
-		pimpl(make_unique_pimpl<VulkanSwapchain::Impl>(device, physicalDevice, surface, window)) { }
+		const VulkanDevice& device,
+		const VulkanSurface& surface) :
+		pimpl(make_unique_pimpl<VulkanSwapchain::Impl>(window, physicalDevice, device, surface)) { }
 
 	const vk::SwapchainKHR& VulkanSwapchain::getSwapchain() const {
 		return *pimpl->swapchain;
@@ -165,5 +177,14 @@ namespace poc {
 	const vk::Extent2D& VulkanSwapchain::getExtent() const {
 		return pimpl->imageExtent;
 	}
+
+	const uint32_t VulkanSwapchain::getNumberOfImages() const {
+		return static_cast<uint32_t>(pimpl->imageViews.size());
+	}
+
+	const std::vector<VulkanImageView>& VulkanSwapchain::getImageViews() const {
+		return pimpl->imageViews;
+	}
+
 }
 

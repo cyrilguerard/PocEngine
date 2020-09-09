@@ -83,7 +83,7 @@ namespace poc {
 		return physicalDevice.createDeviceUnique(createInfo);
 	}
 
-	static vk::Queue getQueue(const vk::Device& device, uint32_t queueIndex) {
+	static vk::Queue getQueue(const vk::Device& device, const uint32_t queueIndex) {
 		assert(device && "device not initialized");
 		return device.getQueue(queueIndex, 0);
 	}
@@ -98,6 +98,30 @@ namespace poc {
 			presentationQueue(getQueue(*device, *queueConfig.presentationQueueIndex)) {
 
 			Logger::info(logTag, "Device created");
+		}
+
+		std::vector<vk::UniqueFence> createFences(const uint32_t nbFences) const {
+			std::vector<vk::UniqueFence> fences;
+			fences.reserve(nbFences);
+
+			const auto createInfo = vk::FenceCreateInfo().setFlags(vk::FenceCreateFlagBits::eSignaled);
+			for (uint32_t i = 0; i < nbFences; ++i) {
+				fences.push_back(device->createFenceUnique(createInfo));
+			}
+
+			return fences;
+		}
+
+		std::vector<vk::UniqueSemaphore> createSemaphores(const uint32_t nbSemaphores) const {
+			std::vector<vk::UniqueSemaphore> semaphores;
+			semaphores.reserve(nbSemaphores);
+
+			const auto createInfo = vk::SemaphoreCreateInfo();
+			for (uint32_t i = 0; i < nbSemaphores; ++i) {
+				semaphores.push_back(device->createSemaphoreUnique(createInfo));
+			}
+
+			return semaphores;
 		}
 
 	private:
@@ -116,7 +140,7 @@ namespace poc {
 		return *pimpl->device;
 	}
 
-	const uint32_t VulkanDevice::getGraphicsQueueIndex() const {
+	uint32_t VulkanDevice::getGraphicsQueueIndex() const {
 		return pimpl->queueConfig.graphicsQueueIndex.value();
 	}
 
@@ -124,7 +148,7 @@ namespace poc {
 		return pimpl->graphicQueue;
 	}
 
-	const uint32_t VulkanDevice::getPresentationQueueIndex() const {
+	uint32_t VulkanDevice::getPresentationQueueIndex() const {
 		return pimpl->queueConfig.presentationQueueIndex.value();
 	}
 
@@ -132,8 +156,16 @@ namespace poc {
 		return pimpl->presentationQueue;
 	}
 
-	const bool VulkanDevice::hasDistinctPresentationQueue() const {
+	bool VulkanDevice::hasDistinctPresentationQueue() const {
 		return !pimpl->queueConfig.useSameQueue();
+	}
+
+	std::vector<vk::UniqueFence> VulkanDevice::createFences(const uint32_t nbFences) const {
+		return pimpl->createFences(nbFences);
+	}
+
+	std::vector<vk::UniqueSemaphore> VulkanDevice::createSemaphores(const uint32_t nbSemaphores) const {
+		return pimpl->createSemaphores(nbSemaphores);
 	}
 
 }

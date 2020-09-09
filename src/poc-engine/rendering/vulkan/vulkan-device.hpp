@@ -9,17 +9,20 @@ namespace poc {
 	class VulkanDevice {
 	public:
 
-		VulkanDevice(const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface);
+		explicit VulkanDevice(const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface);
 
 		const vk::Device getDevice() const;
 
-		const uint32_t getGraphicsQueueIndex() const;
+		uint32_t getGraphicsQueueIndex() const;
 		const vk::Queue& getGraphicsQueue() const;
 
-		const uint32_t getPresentationQueueIndex() const;
+		uint32_t getPresentationQueueIndex() const;
 		const vk::Queue& getPresentationQueue() const;
 
-		const bool hasDistinctPresentationQueue() const;
+		bool hasDistinctPresentationQueue() const;
+
+		std::vector<vk::UniqueFence> createFences(const uint32_t nbFences) const;
+		std::vector<vk::UniqueSemaphore> createSemaphores(const uint32_t nbSemaphores) const;
 
 	private:
 		class Impl;

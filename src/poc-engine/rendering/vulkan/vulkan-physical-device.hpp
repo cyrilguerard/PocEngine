@@ -10,7 +10,7 @@ namespace poc {
 	class VulkanPhysicalDevice {
 	public:
 
-		VulkanPhysicalDevice(const VulkanInstance& instance, const VulkanSurface& surface);
+		explicit VulkanPhysicalDevice(const VulkanInstance& instance, const VulkanSurface& surface);
 		const vk::PhysicalDevice getPhysicalDevice() const;
 
 	private:

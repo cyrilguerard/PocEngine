@@ -6,10 +6,10 @@
 
 namespace poc {
 
-	class VulkanApi : public GraphicApi {
+	class VulkanGraphicApi : public GraphicApi {
 	public:
 
-		VulkanApi(const Window& window);
+		explicit VulkanGraphicApi(const Window& window);
 		virtual void render() override;
 
 	private:

@@ -8,7 +8,7 @@ namespace poc {
 	class VulkanInstance {
 	public:
 
-		VulkanInstance();
+		explicit VulkanInstance();
 		const vk::Instance& getInstance() const;
 
 	private:

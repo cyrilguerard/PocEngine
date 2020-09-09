@@ -10,7 +10,7 @@ namespace poc {
 	class VulkanSurface {
 	public:
 
-		VulkanSurface(const VulkanInstance& instance, const Window& window);
+		explicit VulkanSurface(const VulkanInstance& instance, const Window& window);
 		const vk::SurfaceKHR getSurface() const;
 
 	private:

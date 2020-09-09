@@ -8,8 +8,8 @@ namespace poc {
 
 	static constexpr char logTag[]{ "POC::VulkanRenderPass" };
 
-	static vk::UniqueRenderPass createRenderPass(const VulkanDevice& device, const VulkanSwapchain& swapchain) {
-		assert(device.getDevice() && "device not initialized");
+	static vk::UniqueRenderPass createRenderPass(const vk::Device& device, const VulkanSwapchain& swapchain) {
+		assert(device && "device not initialized");
 		assert(swapchain.getSwapchain() && "swapchain not initialized");
 
 		const auto colorAttachment = vk::AttachmentDescription()
@@ -49,14 +49,14 @@ namespace poc {
 			.setDependencyCount(1)
 			.setPDependencies(&dependency);
 
-		return device.getDevice().createRenderPassUnique(createInfo);
+		return device.createRenderPassUnique(createInfo);
 	}
 
 	class VulkanRenderPass::Impl {
 	public:
 
 		Impl(const VulkanDevice& device, const VulkanSwapchain& swapchain) :
-			renderPass(createRenderPass(device, swapchain)) {
+			renderPass(createRenderPass(device.getDevice(), swapchain)) {
 
 			Logger::info(logTag, "Render pass created");
 		}

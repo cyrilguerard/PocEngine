@@ -36,7 +36,7 @@ namespace poc {
 
 	}
 
-	bool isSurfaceCompatibleWith(const vk::PhysicalDevice device, const vk::SurfaceKHR& surface) {
+	static bool isSurfaceCompatibleWith(const vk::PhysicalDevice device, const vk::SurfaceKHR& surface) {
 		const auto formats = device.getSurfaceFormatsKHR(surface);
 		const auto modes = device.getSurfacePresentModesKHR(surface);
 		return !formats.empty() && !modes.empty();
