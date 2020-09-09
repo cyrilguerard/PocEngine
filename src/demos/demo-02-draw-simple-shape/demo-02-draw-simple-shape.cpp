@@ -1,4 +1,4 @@
-#include "demo-01-simple-window.hpp"
+#include "demo-02-draw-simple-shape.hpp"
 
 #include <exception>
 #include <iostream>

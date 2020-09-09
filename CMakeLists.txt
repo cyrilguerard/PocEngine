@@ -7,6 +7,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+
+
+if (MSVC)
+    string(REGEX REPLACE "/W3" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    add_compile_options(/W4 /WX)
+else()
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
+
 set(PROJECT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(PROJECT_3RD_PARTY_DIR "${CMAKE_SOURCE_DIR}/third-party")
 
@@ -18,3 +27,6 @@ endif()
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/poc-engine")
 add_subdirectory("${PROJECT_SOURCE_DIR}/demos/demo-01-simple-window")
+add_subdirectory("${PROJECT_SOURCE_DIR}/demos/demo-02-draw-simple-shape")
+
+add_subdirectory("${PROJECT_SOURCE_DIR}/tools/bin2cpp")

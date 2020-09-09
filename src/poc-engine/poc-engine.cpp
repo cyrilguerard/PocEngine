@@ -1,20 +1,42 @@
-#include "poc-engine.h"
-#include "rendering/window.h"
+#include "poc-engine.hpp"
 
-void poc::PocEngine::run()
-{
-	std::cout << "[POC::PocEngine] Starting..." << std::endl;
+#include "core/logger.hpp"
+#include "plateform/window.hpp"
+#include "rendering/graphic-api.hpp"
+#include "rendering/rendering-system.hpp"
 
-	auto window = poc::layers::window::Window::createWindow(1024, 768, "PocEngine");
+using namespace poc;
 
-	std::cout << "[POC::PocEngine] Started" << std::endl;
+namespace poc {
 
-	while (!window.isClosing()) {
-		window.update();
+	static constexpr char logTag[]{ "POC::PocEngine" };
+
+	class PocEngineImpl : public PocEngine {
+
+		void run() override
+		{
+			Logger::info(logTag, "Starting...");
+
+			const auto window = Window::openWindow(1280, 720, "PocEngine");
+			const auto renderingSystem = RenderingSystem::make(*window, GraphicApi::Type::VULKAN);
+
+			Logger::info(logTag, "Started");
+
+			while (!window->isClosing()) {
+				window->update();
+				renderingSystem->render();
+			}
+
+			Logger::info(logTag, "Stopping...");
+
+			Logger::info(logTag, "Stopped");
+
+		}
+
+	};
+
+	std::unique_ptr<PocEngine> PocEngine::make() {
+		return std::make_unique<PocEngineImpl>();
 	}
-
-	std::cout << "[POC::PocEngine] Stopping..." << std::endl;
-
-	std::cout << "[POC::PocEngine] Stopped" << std::endl;
 
 }

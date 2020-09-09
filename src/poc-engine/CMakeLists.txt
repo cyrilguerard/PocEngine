@@ -1,7 +1,5 @@
-﻿#find_package(glfw3 3.3 REQUIRED)
-
-file(GLOB_RECURSE POC_ENGINE_SRC_DIR
-	${PROJECT_SOURCE_DIR}/poc-engine/*.h
+﻿file(GLOB_RECURSE POC_ENGINE_SRC_DIR
+	${PROJECT_SOURCE_DIR}/poc-engine/*.hpp
 	${PROJECT_SOURCE_DIR}/poc-engine/*.cpp)
 	
 add_library(poc-engine STATIC ${POC_ENGINE_SRC_DIR})
@@ -11,7 +9,7 @@ message(WARN ${POC_ENGINE_SRC_DIR})
 # Vulkan
 find_package(Vulkan REQUIRED)
 target_include_directories(poc-engine PUBLIC ${VULKAN_INC})
-target_link_libraries(poc-engine ${VULKAN_LIB})
+#target_link_libraries(poc-engine ${VULKAN_LIB})
 
 # GLFW3
 find_package(GLFW3 REQUIRED)

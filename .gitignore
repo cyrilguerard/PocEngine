@@ -11,6 +11,9 @@
 # ignore CMake build
 build/
 
+# ignore Shader compiled
+*.spv
+
 # User-specific files
 *.rsuser
 *.suo
