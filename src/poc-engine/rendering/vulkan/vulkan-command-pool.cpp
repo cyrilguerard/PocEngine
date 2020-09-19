@@ -37,6 +37,40 @@ namespace poc {
 			return device.allocateCommandBuffersUnique(allocateInfo);
 		}
 
+		vk::UniqueCommandBuffer beginCommandBuffer(const VulkanDevice& device) {
+			assert(device.getDevice() && "device not initialized");
+
+			auto allocateInfo = vk::CommandBufferAllocateInfo()
+				.setCommandPool(*commandPool)
+				.setLevel(vk::CommandBufferLevel::ePrimary)
+				.setCommandBufferCount(1);
+
+			vk::UniqueCommandBuffer commandBuffer{
+				device.getDevice().allocateCommandBuffers(allocateInfo)[0],
+				{ device.getDevice(), *commandPool }
+			};
+
+			auto beginInfo = vk::CommandBufferBeginInfo()
+				.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+
+			commandBuffer->begin(beginInfo);
+			return commandBuffer;
+		}
+
+		void endCommandBuffer(const VulkanDevice& device, const vk::CommandBuffer& commandBuffer) {
+			assert(device.getDevice() && "device not initialized");
+			assert(commandBuffer && "commandBuffer not initialized");
+
+			commandBuffer.end();
+
+			const auto submitInfo = vk::SubmitInfo()
+				.setCommandBufferCount(1)
+				.setPCommandBuffers(&commandBuffer);
+
+			device.getGraphicsQueue().submit(1, &submitInfo, vk::Fence{});
+			device.getGraphicsQueue().waitIdle();
+		}
+
 	private:
 		vk::UniqueCommandPool commandPool;
 
@@ -47,6 +81,14 @@ namespace poc {
 
 	std::vector<vk::UniqueCommandBuffer> VulkanCommandPool::createCommandBuffers(const VulkanDevice& device, const uint32_t count) const {
 		return pimpl->createCommandBuffers(device.getDevice(), count);
+	}
+
+	vk::UniqueCommandBuffer VulkanCommandPool::beginCommandBuffer(const VulkanDevice& device) const {
+		return pimpl->beginCommandBuffer(device);
+	}
+
+	void VulkanCommandPool::endCommandBuffer(const VulkanDevice& device, const vk::CommandBuffer& commandBuffer) const {
+		pimpl->endCommandBuffer(device, commandBuffer);
 	}
 
 }

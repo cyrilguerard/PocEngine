@@ -86,6 +86,17 @@ namespace poc {
 			Logger::info(logTag, "GPU chosen: " + std::string(physicalDevice.getProperties().deviceName));
 		}
 
+		uint32_t findMemoryTypeIndex(uint32_t type, vk::MemoryPropertyFlags properties) {
+			vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties();
+			for (uint32_t index = 0; index < memoryProperties.memoryTypeCount; ++index) {
+				if ((type & (1 << index)) && (memoryProperties.memoryTypes[index].propertyFlags & properties) == properties) {
+					return index;
+				}
+			}
+			Logger::error(logTag, "Failed to find suitable memory type.");
+			throw std::runtime_error("Failed to find suitable memory type.");
+		}
+
 	private:
 		vk::PhysicalDevice physicalDevice;
 
@@ -97,6 +108,10 @@ namespace poc {
 
 	const vk::PhysicalDevice VulkanPhysicalDevice::getPhysicalDevice() const {
 		return pimpl->physicalDevice;
+	}
+
+	const uint32_t VulkanPhysicalDevice::findMemoryTypeIndex(uint32_t type, vk::MemoryPropertyFlags properties) const {
+		return pimpl->findMemoryTypeIndex(type, properties);
 	}
 
 }

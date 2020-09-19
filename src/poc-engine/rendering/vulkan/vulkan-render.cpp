@@ -60,7 +60,7 @@ namespace poc {
 			Logger::info(logTag, "Vulkan render initialized");
 		}
 
-		void render(const VulkanDevice& device) {
+		void render(const VulkanDevice& device, const VulkanScene& scene) {
 
 			const vk::Fence frameFence{ *frameFences[currentFrame] };
 			const vk::Semaphore imageSemaphore{ *imageAcquisitionSemaphores[currentFrame] };
@@ -97,7 +97,10 @@ namespace poc {
 			commandbuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
 			commandbuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.getPipeline());
-			commandbuffer.draw(3, 1, 0, 0);
+
+			vk::DeviceSize offsets{ 0 };
+			commandbuffer.bindVertexBuffers(0, 1, &scene.getVertexBuffer().getBuffer(), &offsets);
+			commandbuffer.draw(scene.getVertexCount(), 1, 0, 0);
 
 			commandbuffer.endRenderPass();
 			commandbuffer.end();
@@ -156,8 +159,8 @@ namespace poc {
 		const VulkanCommandPool& commandPool) :
 		pimpl(make_unique_pimpl<VulkanRender::Impl>(window, physicalDevice, device, surface, commandPool)) { }
 
-	void VulkanRender::render(const VulkanDevice& device) {
-		pimpl->render(device);
+	void VulkanRender::render(const VulkanDevice& device, const VulkanScene& scene) {
+		pimpl->render(device, scene);
 	}
 }
 

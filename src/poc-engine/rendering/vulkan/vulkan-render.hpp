@@ -1,11 +1,13 @@
 #pragma once
 
 #include "../../core/pimpl_ptr.hpp"
+#include "../../core/scene.hpp"
 #include "../../plateform/platform.hpp"
 #include "../../plateform/window.hpp"
 #include "vulkan-command-pool.hpp"
 #include "vulkan-device.hpp"
 #include "vulkan-physical-device.hpp"
+#include "vulkan-scene.hpp"
 #include "vulkan-surface.hpp"
 
 namespace poc {
@@ -20,7 +22,7 @@ namespace poc {
 			const VulkanSurface& surface,
 			const VulkanCommandPool& commandPool);
 
-		void render(const VulkanDevice& device);
+		void render(const VulkanDevice& device, const VulkanScene& scene);
 
 	private:
 		class Impl;

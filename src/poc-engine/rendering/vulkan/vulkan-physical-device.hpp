@@ -12,6 +12,7 @@ namespace poc {
 
 		explicit VulkanPhysicalDevice(const VulkanInstance& instance, const VulkanSurface& surface);
 		const vk::PhysicalDevice getPhysicalDevice() const;
+		const uint32_t findMemoryTypeIndex(uint32_t type, vk::MemoryPropertyFlags properties) const;
 
 	private:
 		class Impl;

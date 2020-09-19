@@ -28,8 +28,10 @@ namespace poc {
 			Logger::info(logTag, "Vulkan API fully initialized");
 		}
 
-		void render() {
-			vRender.render(device);
+		void render(const Scene& scene) {
+			if (!scene.isEmpty()) {
+				vRender.render(device, VulkanScene(physicalDevice, device, commandPool, scene));
+			}
 		}
 
 	private:
@@ -45,8 +47,8 @@ namespace poc {
 	VulkanGraphicApi::VulkanGraphicApi(const Window& window) :
 		pimpl(make_unique_pimpl<VulkanGraphicApi::Impl>(window)) {};
 
-	void VulkanGraphicApi::render() {
-		pimpl->render();
+	void VulkanGraphicApi::render(const Scene& scene) {
+		pimpl->render(scene);
 	};
 
 }

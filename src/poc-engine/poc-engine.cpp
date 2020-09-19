@@ -12,6 +12,11 @@ namespace poc {
 	static constexpr char logTag[]{ "POC::PocEngine" };
 
 	class PocEngineImpl : public PocEngine {
+	public:
+
+		void loadScene(const Scene s) override {
+			scene = s;
+		}
 
 		void run() override
 		{
@@ -24,7 +29,7 @@ namespace poc {
 
 			while (!window->isClosing()) {
 				window->update();
-				renderingSystem->render();
+				renderingSystem->render(scene);
 			}
 
 			Logger::info(logTag, "Stopping...");
@@ -32,6 +37,9 @@ namespace poc {
 			Logger::info(logTag, "Stopped");
 
 		}
+
+	private:
+		Scene scene;
 
 	};
 

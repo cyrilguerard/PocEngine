@@ -1,9 +1,11 @@
 #include "vulkan-pipeline.hpp"
 
 #include "../../core/logger.hpp"
+#include "../vertex.hpp"
 
 #include "shaders/vulkan-shader-fragment.hpp"
 #include "shaders/vulkan-shader-vertex.hpp"
+
 
 using namespace poc;
 
@@ -58,7 +60,22 @@ namespace poc {
 
 		const std::vector<vk::PipelineShaderStageCreateInfo> shaderInfos{ vertexShader, fragmentShader };
 
-		const auto vertexInputState = vk::PipelineVertexInputStateCreateInfo();
+		const auto vertexBindingDesc = vk::VertexInputBindingDescription()
+			.setBinding(0)
+			.setStride(sizeof(Vertex))
+			.setInputRate(vk::VertexInputRate::eVertex);
+
+		const auto vertexAttributeDesc = vk::VertexInputAttributeDescription()
+			.setBinding(0)
+			.setLocation(0)
+			.setFormat(vk::Format::eR32G32B32Sfloat)
+			.setOffset(offsetof(Vertex, position));
+
+		const auto vertexInputState = vk::PipelineVertexInputStateCreateInfo()
+			.setVertexBindingDescriptionCount(1)
+			.setPVertexBindingDescriptions(&vertexBindingDesc)
+			.setVertexAttributeDescriptionCount(1)
+			.setPVertexAttributeDescriptions(&vertexAttributeDesc);
 
 		const auto inputAssemblyState = vk::PipelineInputAssemblyStateCreateInfo()
 			.setTopology(vk::PrimitiveTopology::eTriangleList)

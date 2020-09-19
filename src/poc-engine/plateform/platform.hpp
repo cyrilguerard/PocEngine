@@ -18,6 +18,8 @@
 
 #endif
 
+#include "glm/glm.hpp"
+
 #include <vector>
 
 void registerWindowVulkanExtensions(std::vector<const char*>& extensions);

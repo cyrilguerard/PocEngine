@@ -10,7 +10,11 @@ namespace poc {
 	public:
 
 		explicit VulkanCommandPool(const VulkanDevice& device);
+
 		std::vector<vk::UniqueCommandBuffer> createCommandBuffers(const VulkanDevice& device, const uint32_t count) const;
+
+		vk::UniqueCommandBuffer beginCommandBuffer(const VulkanDevice& device) const;
+		void endCommandBuffer(const VulkanDevice& device, const vk::CommandBuffer& commandBuffer) const;
 
 	private:
 		class Impl;

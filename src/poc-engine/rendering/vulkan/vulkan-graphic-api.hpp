@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../core/pimpl_ptr.hpp"
+#include "../../core/scene.hpp"
 #include "../../plateform/window.hpp"
 #include "../graphic-api.hpp"
 
@@ -10,7 +11,7 @@ namespace poc {
 	public:
 
 		explicit VulkanGraphicApi(const Window& window);
-		virtual void render() override;
+		virtual void render(const Scene& scene) override;
 
 	private:
 		class Impl;

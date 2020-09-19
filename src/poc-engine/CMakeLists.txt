@@ -9,12 +9,16 @@ message(WARN ${POC_ENGINE_SRC_DIR})
 # Vulkan
 find_package(Vulkan REQUIRED)
 target_include_directories(poc-engine PUBLIC ${VULKAN_INC})
-#target_link_libraries(poc-engine ${VULKAN_LIB})
+#target_link_libraries(poc-engine ${VULKAN_LIB}) use driver DLL
 
 # GLFW3
 find_package(GLFW3 REQUIRED)
 target_include_directories(poc-engine PUBLIC ${GLFW3_INC})
 target_link_libraries(poc-engine ${GLFW3_LIB})
+
+# GLM
+find_package(GLM REQUIRED)
+target_include_directories(poc-engine PUBLIC ${GLM_INC})
 
 if(PLATFORM EQUAL 64)
 	install(TARGETS poc-engine CONFIGURATIONS Debug DESTINATION ${CMAKE_SOURCE_DIR}/lib/debug)
