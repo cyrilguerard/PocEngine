@@ -65,17 +65,27 @@ namespace poc {
 			.setStride(sizeof(Vertex))
 			.setInputRate(vk::VertexInputRate::eVertex);
 
-		const auto vertexAttributeDesc = vk::VertexInputAttributeDescription()
+		const std::array<vk::VertexInputAttributeDescription, 2> vertexAttributeDescs = {
+
+			vk::VertexInputAttributeDescription()
 			.setBinding(0)
 			.setLocation(0)
 			.setFormat(vk::Format::eR32G32B32Sfloat)
-			.setOffset(offsetof(Vertex, position));
+			.setOffset(offsetof(Vertex, position)),
+
+			vk::VertexInputAttributeDescription()
+			.setBinding(0)
+			.setLocation(1)
+			.setFormat(vk::Format::eR32G32B32Sfloat)
+			.setOffset(offsetof(Vertex, color))
+
+		};
 
 		const auto vertexInputState = vk::PipelineVertexInputStateCreateInfo()
 			.setVertexBindingDescriptionCount(1)
 			.setPVertexBindingDescriptions(&vertexBindingDesc)
-			.setVertexAttributeDescriptionCount(1)
-			.setPVertexAttributeDescriptions(&vertexAttributeDesc);
+			.setVertexAttributeDescriptionCount(static_cast<uint32_t>(vertexAttributeDescs.size()))
+			.setPVertexAttributeDescriptions(vertexAttributeDescs.data());
 
 		const auto inputAssemblyState = vk::PipelineInputAssemblyStateCreateInfo()
 			.setTopology(vk::PrimitiveTopology::eTriangleList)

@@ -28,5 +28,6 @@ endif()
 add_subdirectory("${PROJECT_SOURCE_DIR}/poc-engine")
 add_subdirectory("${PROJECT_SOURCE_DIR}/demos/demo-01-simple-window")
 add_subdirectory("${PROJECT_SOURCE_DIR}/demos/demo-02-draw-simple-shape")
+add_subdirectory("${PROJECT_SOURCE_DIR}/demos/demo-03-depth-test")
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/tools/bin2cpp")
