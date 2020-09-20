@@ -1,17 +1,17 @@
 #include "vulkan-image-view.hpp"
 
-#include "../../core/logger.hpp"
-
 using namespace poc;
 
 namespace poc {
 
-	static constexpr char logTag[]{ "POC::VulkanImageView" };
-
-	static vk::UniqueImageView createImageView(const vk::Device& device, const vk::Image& image, const vk::Format& format) {
+	static vk::UniqueImageView createImageView(
+		const vk::Device& device,
+		const vk::Image& image,
+		const vk::Format& format,
+		const vk::ImageAspectFlags& imageAspect) {
 
 		const auto subresourceRange = vk::ImageSubresourceRange()
-			.setAspectMask(vk::ImageAspectFlagBits::eColor)
+			.setAspectMask(imageAspect)
 			.setBaseMipLevel(0)
 			.setLevelCount(1)
 			.setBaseArrayLayer(0)
@@ -29,20 +29,26 @@ namespace poc {
 	class VulkanImageView::Impl {
 	public:
 
-		Impl(const vk::Device& device, const vk::Image& image, const vk::Format& format)
-			: imageView(createImageView(device, image, format)) { }
+		const vk::UniqueImageView imageView;
 
-	private:
-		vk::UniqueImageView imageView;
+		Impl(const vk::Device& device,
+			const vk::Image& image,
+			const vk::Format& format,
+			const vk::ImageAspectFlags& imageAspect) :
+			imageView(createImageView(device, image, format, imageAspect)) { }
 
-		friend VulkanImageView;
 	};
 
-	VulkanImageView::VulkanImageView(const vk::Device& device, const vk::Image& image, const vk::Format& format) :
-		pimpl(make_unique_pimpl<VulkanImageView::Impl>(device, image, format)) { }
+	VulkanImageView::VulkanImageView(
+		const vk::Device& device,
+		const vk::Image& image,
+		const vk::Format& format,
+		const vk::ImageAspectFlags& imageAspect) :
+		pimpl(make_unique_pimpl<VulkanImageView::Impl>(device, image, format, imageAspect)) { }
 
 	const vk::ImageView& VulkanImageView::getImageView() const {
 		return *pimpl->imageView;
 	}
+
 }
 
