@@ -77,13 +77,41 @@ namespace poc {
 
 	}
 
+	static vk::Format selectDepthFormat(const vk::PhysicalDevice& physicalDevice) {
+
+		// use at least 24 bit for depth, stencil is not used
+		const std::array<vk::Format, 3> formats = {
+			vk::Format::eD32Sfloat,
+			vk::Format::eD32SfloatS8Uint,
+			vk::Format::eD24UnormS8Uint
+		};
+
+		const auto it = std::find_if(formats.cbegin(), formats.cend(), [&physicalDevice](const auto format) {
+			const vk::FormatProperties properties{ physicalDevice.getFormatProperties(format) };
+			const vk::FormatFeatureFlagBits feature = vk::FormatFeatureFlagBits::eDepthStencilAttachment;
+			return (properties.optimalTilingFeatures & feature) == feature;
+			});
+
+		if (it == formats.cend()) {
+			Logger::error(logTag, "No suitable depth format");
+			throw std::runtime_error("No suitable depth format");
+		}
+
+		return *it;
+	}
+
 	class VulkanPhysicalDevice::Impl {
 	public:
 
+		const vk::PhysicalDevice physicalDevice;
+		const vk::Format depthFormat;
+
 		Impl(const VulkanInstance& instance, const VulkanSurface& surface) :
-			physicalDevice(selectPhysicalDevice(instance.getInstance(), surface.getSurface())) {
+			physicalDevice(selectPhysicalDevice(instance.getInstance(), surface.getSurface())),
+			depthFormat(selectDepthFormat(physicalDevice)) {
 
 			Logger::info(logTag, "GPU chosen: " + std::string(physicalDevice.getProperties().deviceName));
+			Logger::info(logTag, "Depth format used: " + std::string(vk::to_string(depthFormat)));
 		}
 
 		uint32_t findMemoryTypeIndex(uint32_t type, vk::MemoryPropertyFlags properties) {
@@ -97,21 +125,21 @@ namespace poc {
 			throw std::runtime_error("Failed to find suitable memory type.");
 		}
 
-	private:
-		vk::PhysicalDevice physicalDevice;
-
-		friend VulkanPhysicalDevice;
 	};
 
 	VulkanPhysicalDevice::VulkanPhysicalDevice(const VulkanInstance& instance, const VulkanSurface& surface) :
 		pimpl(make_unique_pimpl<VulkanPhysicalDevice::Impl>(instance, surface)) {}
 
-	const vk::PhysicalDevice VulkanPhysicalDevice::getPhysicalDevice() const {
+	const vk::PhysicalDevice& VulkanPhysicalDevice::getPhysicalDevice() const {
 		return pimpl->physicalDevice;
 	}
 
 	const uint32_t VulkanPhysicalDevice::findMemoryTypeIndex(uint32_t type, vk::MemoryPropertyFlags properties) const {
 		return pimpl->findMemoryTypeIndex(type, properties);
+	}
+
+	const vk::Format& VulkanPhysicalDevice::getDepthFormat() const {
+		return pimpl->depthFormat;
 	}
 
 }

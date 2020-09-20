@@ -127,7 +127,7 @@ namespace poc {
 
 		std::for_each(images.cbegin(), images.cend(),
 			[&](const vk::Image image) {
-				views.push_back(VulkanImageView(device, image, imageFormat.format));
+				views.push_back(VulkanImageView(device, image, imageFormat.format, vk::ImageAspectFlagBits::eColor));
 			});
 
 		return views;
@@ -135,6 +135,11 @@ namespace poc {
 
 	class VulkanSwapchain::Impl {
 	public:
+
+		const vk::SurfaceFormatKHR imageFormat;
+		const vk::Extent2D imageExtent;
+		const vk::UniqueSwapchainKHR swapchain;
+		const std::vector<VulkanImageView> imageViews;
 
 		Impl(
 			const Window& window,
@@ -149,14 +154,6 @@ namespace poc {
 			Logger::info(logTag, "SwapChain created");
 		}
 
-	private:
-
-		const vk::SurfaceFormatKHR imageFormat;
-		const vk::Extent2D imageExtent;
-		const vk::UniqueSwapchainKHR swapchain;
-		const std::vector<VulkanImageView> imageViews;
-
-		friend VulkanSwapchain;
 	};
 
 	VulkanSwapchain::VulkanSwapchain(

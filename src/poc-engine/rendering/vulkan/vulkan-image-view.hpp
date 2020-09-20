@@ -9,7 +9,12 @@ namespace poc {
 	class VulkanImageView {
 	public:
 
-		explicit VulkanImageView(const vk::Device& device, const vk::Image& image, const vk::Format& format);
+		explicit VulkanImageView(
+			const vk::Device& device,
+			const vk::Image& image,
+			const vk::Format& format,
+			const vk::ImageAspectFlags& imageAspect);
+
 		const vk::ImageView& getImageView() const;
 
 	private:

@@ -122,6 +122,13 @@ namespace poc {
 		const auto multisampleState = vk::PipelineMultisampleStateCreateInfo()
 			.setSampleShadingEnable(VK_FALSE);
 
+		const auto depthStencilState = vk::PipelineDepthStencilStateCreateInfo()
+			.setDepthTestEnable(VK_TRUE)
+			.setDepthWriteEnable(VK_TRUE)
+			.setDepthCompareOp(vk::CompareOp::eLess)
+			.setDepthBoundsTestEnable(VK_FALSE)
+			.setStencilTestEnable(VK_FALSE);
+
 		const auto colorBlendAttachment = vk::PipelineColorBlendAttachmentState()
 			.setBlendEnable(VK_FALSE)
 			.setColorWriteMask(
@@ -144,7 +151,7 @@ namespace poc {
 			.setPViewportState(&viewportState)
 			.setPRasterizationState(&rasterizationState)
 			.setPMultisampleState(&multisampleState)
-			.setPDepthStencilState(nullptr)
+			.setPDepthStencilState(&depthStencilState)
 			.setPColorBlendState(&colorBlendState)
 			.setPDynamicState(nullptr)
 			.setLayout(layout)
@@ -158,6 +165,9 @@ namespace poc {
 	class VulkanPipeline::Impl {
 	public:
 
+		const vk::UniquePipelineLayout pipelineLayout;
+		const vk::UniquePipeline pipeline;
+
 		Impl(const VulkanDevice& device, const VulkanSwapchain& swapchain, const VulkanRenderPass& renderPass) :
 			pipelineLayout(createPipelineLayout(device.getDevice())),
 			pipeline(createPipeline(device.getDevice(), swapchain, renderPass.getRenderPass(), *pipelineLayout)) {
@@ -165,11 +175,6 @@ namespace poc {
 			Logger::info(logTag, "Pipeline created");
 		}
 
-	private:
-		vk::UniquePipelineLayout pipelineLayout;
-		vk::UniquePipeline pipeline;
-
-		friend VulkanPipeline;
 	};
 
 	VulkanPipeline::VulkanPipeline(const VulkanDevice& device, const VulkanSwapchain& swapchain, const VulkanRenderPass& renderPass) :

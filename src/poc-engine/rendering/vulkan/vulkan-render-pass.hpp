@@ -3,6 +3,7 @@
 #include "../../core/pimpl_ptr.hpp"
 #include "../../plateform/platform.hpp"
 #include "vulkan-device.hpp"
+#include "vulkan-physical-device.hpp"
 #include "vulkan-swapchain.hpp"
 
 namespace poc {
@@ -10,7 +11,11 @@ namespace poc {
 	class VulkanRenderPass {
 	public:
 
-		explicit VulkanRenderPass(const VulkanDevice& device, const VulkanSwapchain& swapchain);
+		explicit VulkanRenderPass(
+			const VulkanPhysicalDevice& physicalDevice,
+			const VulkanDevice& device,
+			const VulkanSwapchain& swapchain);
+
 		const vk::RenderPass& getRenderPass() const;
 
 	private:

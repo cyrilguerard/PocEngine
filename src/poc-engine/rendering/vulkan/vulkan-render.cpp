@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "../../core/logger.hpp"
+#include "vulkan-image.hpp"
 #include "vulkan-pipeline.hpp"
 #include "vulkan-render-pass.hpp"
 #include "vulkan-swapchain.hpp"
@@ -14,20 +15,53 @@ namespace poc {
 
 	static constexpr char logTag[]{ "POC::VulkanRender" };
 
+	static VulkanImage createDepthImage(
+		const VulkanCommandPool& commandPool,
+		const VulkanPhysicalDevice& physicalDevice,
+		const VulkanDevice& device,
+		const VulkanSwapchain& swapchain) {
+
+		const auto [width, height] = swapchain.getExtent();
+
+		return VulkanImage(
+			commandPool,
+			physicalDevice,
+			device,
+			physicalDevice.getDepthFormat(),
+			width,
+			height,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eDepthStencilAttachment,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			vk::ImageLayout::eDepthStencilAttachmentOptimal);
+	}
+
+	static VulkanImageView createDepthImageView(
+		const vk::Device& device,
+		const VulkanImage& depthImage) {
+		return VulkanImageView(device, depthImage.getImage(), depthImage.getFormat(), vk::ImageAspectFlagBits::eDepth);
+	}
+
 	static std::vector <vk::UniqueFramebuffer> createFrameBuffers(
 		const vk::Device& device,
+		const vk::RenderPass& renderPass,
 		const VulkanSwapchain& swapchain,
-		const vk::RenderPass& renderPass) {
+		const vk::ImageView& imageView) {
 
 		std::vector <vk::UniqueFramebuffer> frameBuffers;
 		frameBuffers.reserve(swapchain.getNumberOfImages());
 
 		for (uint32_t i = 0; i < swapchain.getNumberOfImages(); i++) {
 
+			std::array<vk::ImageView, 2> imageViews = {
+				swapchain.getImageViews()[i].getImageView(),
+				imageView
+			};
+
 			const auto createInfo = vk::FramebufferCreateInfo()
 				.setRenderPass(renderPass)
-				.setAttachmentCount(1)
-				.setPAttachments(&swapchain.getImageViews()[i].getImageView())
+				.setAttachmentCount(static_cast<uint32_t>(imageViews.size()))
+				.setPAttachments(imageViews.data())
 				.setWidth(swapchain.getExtent().width)
 				.setHeight(swapchain.getExtent().height)
 				.setLayers(1);
@@ -41,16 +75,36 @@ namespace poc {
 	class VulkanRender::Impl {
 	public:
 
+		const VulkanSwapchain swapchain;
+		const VulkanRenderPass renderPass;
+		const VulkanPipeline pipeline;
+
+		uint32_t currentFrame{ 0 };
+		const uint32_t maxBufferingFrames;
+
+		const VulkanImage depthImage;
+		const VulkanImageView depthImageView;
+
+		const std::vector <vk::UniqueFramebuffer> frameBuffers;
+		const std::vector <vk::UniqueCommandBuffer> commandBuffers;
+
+		std::vector<vk::Fence> imageFences;
+		const std::vector<vk::UniqueFence> frameFences;
+		const std::vector<vk::UniqueSemaphore> imageAcquisitionSemaphores;
+		const std::vector<vk::UniqueSemaphore> graphicCompletedSemaphores;
+
 		Impl(const Window& window,
 			const VulkanPhysicalDevice& physicalDevice,
 			const VulkanDevice& device,
 			const VulkanSurface& surface,
 			const VulkanCommandPool& commandPool) :
 			swapchain(VulkanSwapchain(window, physicalDevice, device, surface)),
-			renderPass(VulkanRenderPass(device, swapchain)),
+			renderPass(VulkanRenderPass(physicalDevice, device, swapchain)),
 			pipeline(VulkanPipeline(device, swapchain, renderPass)),
 			maxBufferingFrames(swapchain.getNumberOfImages()),
-			frameBuffers(createFrameBuffers(device.getDevice(), swapchain, renderPass.getRenderPass())),
+			depthImage(createDepthImage(commandPool, physicalDevice, device, swapchain)),
+			depthImageView(createDepthImageView(device.getDevice(), depthImage)),
+			frameBuffers(createFrameBuffers(device.getDevice(), renderPass.getRenderPass(), swapchain, depthImageView.getImageView())),
 			commandBuffers(commandPool.createCommandBuffers(device, maxBufferingFrames)),
 			imageFences(maxBufferingFrames),
 			frameFences(device.createFences(maxBufferingFrames)),
@@ -87,15 +141,19 @@ namespace poc {
 			const auto beginInfo = vk::CommandBufferBeginInfo().setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
 			commandbuffer.begin(beginInfo);
 
-			vk::ClearValue clearValues{ std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f } };
+			std::array<vk::ClearValue, 2> clearValues{
+				vk::ClearColorValue{std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f }},
+				vk::ClearDepthStencilValue{ 1.0f, 0 }
+			};
+
 			const auto renderPassBeginInfo = vk::RenderPassBeginInfo()
 				.setRenderPass(renderPass.getRenderPass())
 				.setFramebuffer(frameBuffer)
 				.setRenderArea({ { 0 , 0 }, swapchain.getExtent() })
-				.setClearValueCount(1)
-				.setPClearValues(&clearValues);
-			commandbuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
+				.setClearValueCount(static_cast<uint32_t>(clearValues.size()))
+				.setPClearValues(clearValues.data());
 
+			commandbuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 			commandbuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.getPipeline());
 
 			vk::DeviceSize offsets{ 0 };
@@ -129,25 +187,6 @@ namespace poc {
 
 			currentFrame = (currentFrame + 1) % maxBufferingFrames;
 		}
-
-
-
-	private:
-
-		const VulkanSwapchain swapchain;
-		const VulkanRenderPass renderPass;
-		const VulkanPipeline pipeline;
-
-		uint32_t currentFrame{ 0 };
-		const uint32_t maxBufferingFrames;
-
-		const std::vector <vk::UniqueFramebuffer> frameBuffers;
-		const std::vector <vk::UniqueCommandBuffer> commandBuffers;
-
-		std::vector<vk::Fence> imageFences;
-		const std::vector<vk::UniqueFence> frameFences;
-		const std::vector<vk::UniqueSemaphore> imageAcquisitionSemaphores;
-		const std::vector<vk::UniqueSemaphore> graphicCompletedSemaphores;
 
 	};
 
