@@ -15,6 +15,34 @@ namespace poc {
 
 	static constexpr char logTag[]{ "POC::VulkanRender" };
 
+	static VulkanImage createColorImage(
+		const VulkanCommandPool& commandPool,
+		const VulkanPhysicalDevice& physicalDevice,
+		const VulkanDevice& device,
+		const VulkanSwapchain& swapchain) {
+
+		const auto [width, height] = swapchain.getExtent();
+
+		return VulkanImage(
+			commandPool,
+			physicalDevice,
+			device,
+			swapchain.getFormat(),
+			width,
+			height,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eColorAttachment,
+			physicalDevice.getMaxSampleCount(),
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			vk::ImageLayout::eColorAttachmentOptimal);
+	}
+
+	static VulkanImageView createColorImageView(
+		const vk::Device& device,
+		const VulkanImage& colorImage) {
+		return VulkanImageView(device, colorImage.getImage(), colorImage.getFormat(), vk::ImageAspectFlagBits::eColor);
+	}
+
 	static VulkanImage createDepthImage(
 		const VulkanCommandPool& commandPool,
 		const VulkanPhysicalDevice& physicalDevice,
@@ -32,6 +60,7 @@ namespace poc {
 			height,
 			vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eDepthStencilAttachment,
+			physicalDevice.getMaxSampleCount(),
 			vk::MemoryPropertyFlagBits::eDeviceLocal,
 			vk::ImageLayout::eDepthStencilAttachmentOptimal);
 	}
@@ -46,16 +75,18 @@ namespace poc {
 		const vk::Device& device,
 		const vk::RenderPass& renderPass,
 		const VulkanSwapchain& swapchain,
-		const vk::ImageView& imageView) {
+		const vk::ImageView& colorView,
+		const vk::ImageView& depthView) {
 
 		std::vector <vk::UniqueFramebuffer> frameBuffers;
 		frameBuffers.reserve(swapchain.getNumberOfImages());
 
 		for (uint32_t i = 0; i < swapchain.getNumberOfImages(); i++) {
 
-			std::array<vk::ImageView, 2> imageViews = {
-				swapchain.getImageViews()[i].getImageView(),
-				imageView
+			std::array<vk::ImageView, 3> imageViews = {
+				colorView,
+				depthView,
+				swapchain.getImageViews()[i].getImageView()
 			};
 
 			const auto createInfo = vk::FramebufferCreateInfo()
@@ -82,6 +113,9 @@ namespace poc {
 		uint32_t currentFrame{ 0 };
 		const uint32_t maxBufferingFrames;
 
+		const VulkanImage colorImage;
+		const VulkanImageView colorImageView;
+
 		const VulkanImage depthImage;
 		const VulkanImageView depthImageView;
 
@@ -100,11 +134,13 @@ namespace poc {
 			const VulkanCommandPool& commandPool) :
 			swapchain(VulkanSwapchain(window, physicalDevice, device, surface)),
 			renderPass(VulkanRenderPass(physicalDevice, device, swapchain)),
-			pipeline(VulkanPipeline(device, swapchain, renderPass)),
+			pipeline(VulkanPipeline(physicalDevice, device, swapchain, renderPass)),
 			maxBufferingFrames(swapchain.getNumberOfImages()),
+			colorImage(createColorImage(commandPool, physicalDevice, device, swapchain)),
+			colorImageView(createColorImageView(device.getDevice(), colorImage)),
 			depthImage(createDepthImage(commandPool, physicalDevice, device, swapchain)),
 			depthImageView(createDepthImageView(device.getDevice(), depthImage)),
-			frameBuffers(createFrameBuffers(device.getDevice(), renderPass.getRenderPass(), swapchain, depthImageView.getImageView())),
+			frameBuffers(createFrameBuffers(device.getDevice(), renderPass.getRenderPass(), swapchain, colorImageView.getImageView(), depthImageView.getImageView())),
 			commandBuffers(commandPool.createCommandBuffers(device, maxBufferingFrames)),
 			imageFences(maxBufferingFrames),
 			frameFences(device.createFences(maxBufferingFrames)),
@@ -198,7 +234,7 @@ namespace poc {
 		const VulkanCommandPool& commandPool) :
 		pimpl(make_unique_pimpl<VulkanRender::Impl>(window, physicalDevice, device, surface, commandPool)) { }
 
-	void VulkanRender::render(const VulkanDevice& device, const VulkanScene& scene) {
+	void VulkanRender::render(const VulkanDevice& device, const VulkanScene& scene) const {
 		pimpl->render(device, scene);
 	}
 }

@@ -79,6 +79,8 @@ namespace poc {
 
 	static vk::Format selectDepthFormat(const vk::PhysicalDevice& physicalDevice) {
 
+		assert(physicalDevice && "physicalDevice not initialized");
+
 		// use at least 24 bit for depth, stencil is not used
 		const std::array<vk::Format, 3> formats = {
 			vk::Format::eD32Sfloat,
@@ -100,18 +102,49 @@ namespace poc {
 		return *it;
 	}
 
+	static vk::SampleCountFlagBits computeMaxSampleCount(const vk::PhysicalDevice& physicalDevice) {
+
+		assert(physicalDevice && "physicalDevice not initialized");
+
+		const vk::PhysicalDeviceLimits limits = physicalDevice.getProperties().limits;
+
+		// check the max sample count supported by color & depth
+		const vk::SampleCountFlags supportedSampleCount =
+			limits.sampledImageColorSampleCounts &
+			limits.sampledImageDepthSampleCounts;
+
+		const std::array sampleCounts = {
+			vk::SampleCountFlagBits::e64,
+			vk::SampleCountFlagBits::e32,
+			vk::SampleCountFlagBits::e16,
+			vk::SampleCountFlagBits::e8,
+			vk::SampleCountFlagBits::e4,
+			vk::SampleCountFlagBits::e2
+		};
+
+		const auto it = std::find_if(sampleCounts.cbegin(), sampleCounts.cend(),
+			[&sampleCounts, &supportedSampleCount](const auto sc) {
+				return supportedSampleCount & sc;
+			});
+
+		return it != sampleCounts.cend() ? *it : vk::SampleCountFlagBits::e1;
+	}
+
 	class VulkanPhysicalDevice::Impl {
 	public:
 
 		const vk::PhysicalDevice physicalDevice;
 		const vk::Format depthFormat;
+		const vk::SampleCountFlagBits maxSampleCount;
 
 		Impl(const VulkanInstance& instance, const VulkanSurface& surface) :
 			physicalDevice(selectPhysicalDevice(instance.getInstance(), surface.getSurface())),
-			depthFormat(selectDepthFormat(physicalDevice)) {
+			depthFormat(selectDepthFormat(physicalDevice)),
+			maxSampleCount(computeMaxSampleCount(physicalDevice)) {
 
 			Logger::info(logTag, "GPU chosen: " + std::string(physicalDevice.getProperties().deviceName));
 			Logger::info(logTag, "Depth format used: " + std::string(vk::to_string(depthFormat)));
+			Logger::info(logTag, "Max sample count: " + std::string(vk::to_string(maxSampleCount)));
 		}
 
 		uint32_t findMemoryTypeIndex(uint32_t type, vk::MemoryPropertyFlags properties) {
@@ -140,6 +173,10 @@ namespace poc {
 
 	const vk::Format& VulkanPhysicalDevice::getDepthFormat() const {
 		return pimpl->depthFormat;
+	}
+
+	const vk::SampleCountFlagBits& VulkanPhysicalDevice::getMaxSampleCount() const {
+		return pimpl->maxSampleCount;
 	}
 
 }

@@ -19,13 +19,13 @@ namespace poc {
 
 		const auto colorAttachment = vk::AttachmentDescription()
 			.setFormat(swapchain.getFormat())
-			.setSamples(vk::SampleCountFlagBits::e1)
+			.setSamples(physicalDevice.getMaxSampleCount())
 			.setLoadOp(vk::AttachmentLoadOp::eClear)
 			.setStoreOp(vk::AttachmentStoreOp::eStore)
 			.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
 			.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
 			.setInitialLayout(vk::ImageLayout::eUndefined)
-			.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+			.setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
 		const auto colorAttachmentRef = vk::AttachmentReference()
 			.setAttachment(0)
@@ -33,7 +33,7 @@ namespace poc {
 
 		const auto depthStencilAttachment = vk::AttachmentDescription()
 			.setFormat(physicalDevice.getDepthFormat())
-			.setSamples(vk::SampleCountFlagBits::e1)
+			.setSamples(physicalDevice.getMaxSampleCount())
 			.setLoadOp(vk::AttachmentLoadOp::eClear)
 			.setStoreOp(vk::AttachmentStoreOp::eDontCare)
 			.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
@@ -45,11 +45,26 @@ namespace poc {
 			.setAttachment(1)
 			.setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
+		const auto resolveAttachment = vk::AttachmentDescription()
+			.setFormat(swapchain.getFormat())
+			.setSamples(vk::SampleCountFlagBits::e1)
+			.setLoadOp(vk::AttachmentLoadOp::eDontCare)
+			.setStoreOp(vk::AttachmentStoreOp::eStore)
+			.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
+			.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+			.setInitialLayout(vk::ImageLayout::eUndefined)
+			.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+		const auto resolveAttachmentRef = vk::AttachmentReference()
+			.setAttachment(2)
+			.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
 		const auto subpass = vk::SubpassDescription()
 			.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
 			.setColorAttachmentCount(1)
 			.setPColorAttachments(&colorAttachmentRef)
-			.setPDepthStencilAttachment(&depthStencilAttachmentRef);
+			.setPDepthStencilAttachment(&depthStencilAttachmentRef)
+			.setPResolveAttachments(&resolveAttachmentRef);
 
 		const auto dependency = vk::SubpassDependency()
 			.setSrcSubpass(VK_SUBPASS_EXTERNAL)
@@ -59,7 +74,7 @@ namespace poc {
 			.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
 			.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
 
-		std::array<vk::AttachmentDescription, 2> attachments{ colorAttachment, depthStencilAttachment };
+		std::array<vk::AttachmentDescription, 3> attachments{ colorAttachment, depthStencilAttachment, resolveAttachment };
 
 		const auto createInfo = vk::RenderPassCreateInfo()
 			.setAttachmentCount(static_cast<uint32_t>(attachments.size()))
@@ -75,6 +90,8 @@ namespace poc {
 	class VulkanRenderPass::Impl {
 	public:
 
+		const vk::UniqueRenderPass renderPass;
+
 		Impl(
 			const VulkanPhysicalDevice& physicalDevice,
 			const VulkanDevice& device,
@@ -84,10 +101,6 @@ namespace poc {
 			Logger::info(logTag, "Render pass created");
 		}
 
-	private:
-		vk::UniqueRenderPass renderPass;
-
-		friend VulkanRenderPass;
 	};
 
 	VulkanRenderPass::VulkanRenderPass(
