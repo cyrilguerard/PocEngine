@@ -14,6 +14,7 @@ namespace poc {
 
 		const vk::PhysicalDevice& getPhysicalDevice() const;
 		const vk::Format& getDepthFormat() const;
+		const vk::SampleCountFlagBits& getMaxSampleCount() const;
 
 		const uint32_t findMemoryTypeIndex(uint32_t type, vk::MemoryPropertyFlags properties) const;
 

@@ -14,7 +14,8 @@ namespace poc {
 		const uint32_t width,
 		const uint32_t height,
 		const vk::ImageTiling& tiling,
-		const vk::ImageUsageFlags& usage) {
+		const vk::ImageUsageFlags& usage,
+		const vk::SampleCountFlagBits& sampleCount) {
 
 		assert(device && "device not initialized");
 
@@ -26,7 +27,7 @@ namespace poc {
 			.setExtent(extent)
 			.setMipLevels(1)
 			.setArrayLayers(1)
-			.setSamples(vk::SampleCountFlagBits::e1)
+			.setSamples(sampleCount)
 			.setTiling(tiling)
 			.setUsage(usage)
 			.setSharingMode(vk::SharingMode::eExclusive)
@@ -93,6 +94,16 @@ namespace poc {
 
 		switch (imageLayout)
 		{
+		case vk::ImageLayout::eColorAttachmentOptimal:
+		{
+			barrier.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+			barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+			executeTransitionCommand(commandPool, device,
+				vk::PipelineStageFlagBits::eTopOfPipe,
+				vk::PipelineStageFlagBits::eColorAttachmentOutput,
+				barrier);
+			break;
+		}
 		case vk::ImageLayout::eDepthStencilAttachmentOptimal:
 		{
 			barrier.setDstAccessMask(vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite);
@@ -127,10 +138,11 @@ namespace poc {
 			const uint32_t height,
 			const vk::ImageTiling& tiling,
 			const vk::ImageUsageFlags& usage,
+			const vk::SampleCountFlagBits& sampleCount,
 			const vk::MemoryPropertyFlags& memoryProperties,
 			const vk::ImageLayout& imageLayout) :
 			format(format),
-			image(createImage(device.getDevice(), format, width, height, tiling, usage)),
+			image(createImage(device.getDevice(), format, width, height, tiling, usage, sampleCount)),
 			imageMemory(allocateImageMemory(physicalDevice, device.getDevice(), *image, memoryProperties)) {
 
 			transitionToImageLayout(commandPool, device, *image, imageLayout);
@@ -148,10 +160,11 @@ namespace poc {
 		const uint32_t height,
 		const vk::ImageTiling& tiling,
 		const vk::ImageUsageFlags& usage,
+		const vk::SampleCountFlagBits& sampleCount,
 		const vk::MemoryPropertyFlags& memoryProperties,
 		const vk::ImageLayout& imageLayout) :
 		pimpl(make_unique_pimpl<VulkanImage::Impl>(
-			commandPool, physicalDevice, device, format, width, height, tiling, usage, memoryProperties, imageLayout)) { }
+			commandPool, physicalDevice, device, format, width, height, tiling, usage, sampleCount, memoryProperties, imageLayout)) { }
 
 	const vk::Image VulkanImage::getImage() const {
 		return *pimpl->image;

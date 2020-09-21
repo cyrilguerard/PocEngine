@@ -22,7 +22,7 @@ namespace poc {
 			const VulkanSurface& surface,
 			const VulkanCommandPool& commandPool);
 
-		void render(const VulkanDevice& device, const VulkanScene& scene);
+		void render(const VulkanDevice& device, const VulkanScene& scene) const;
 
 	private:
 		class Impl;

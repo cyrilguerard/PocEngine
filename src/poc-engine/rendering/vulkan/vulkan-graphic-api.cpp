@@ -17,6 +17,13 @@ namespace poc {
 	class VulkanGraphicApi::Impl {
 	public:
 
+		const VulkanInstance instance;
+		const VulkanSurface surface;
+		const VulkanPhysicalDevice physicalDevice;
+		const VulkanDevice device;
+		const VulkanCommandPool commandPool;
+		const VulkanRender vRender;
+
 		Impl(const Window& window) :
 			instance(),
 			surface(instance, window),
@@ -33,14 +40,6 @@ namespace poc {
 				vRender.render(device, VulkanScene(physicalDevice, device, commandPool, scene));
 			}
 		}
-
-	private:
-		VulkanInstance instance;
-		VulkanSurface surface;
-		VulkanPhysicalDevice physicalDevice;
-		VulkanDevice device;
-		VulkanCommandPool commandPool;
-		VulkanRender vRender;
 
 	};
 

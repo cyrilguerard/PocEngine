@@ -20,6 +20,7 @@ namespace poc {
 			const uint32_t height,
 			const vk::ImageTiling& tiling,
 			const vk::ImageUsageFlags& usage,
+			const vk::SampleCountFlagBits& sampleCount,
 			const vk::MemoryPropertyFlags& memoryProperties,
 			const vk::ImageLayout& imageLayout);
 

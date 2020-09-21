@@ -36,11 +36,13 @@ namespace poc {
 	}
 
 	static vk::UniquePipeline createPipeline(
+		const VulkanPhysicalDevice& physicalDevice,
 		const vk::Device& device,
 		const VulkanSwapchain& swapchain,
 		const vk::RenderPass& renderPass,
 		const vk::PipelineLayout& layout) {
 
+		assert(physicalDevice.getPhysicalDevice() && "physicalDevice not initialized");
 		assert(device && "device not initialized");
 		assert(swapchain.getSwapchain() && "swapchain not initialized");
 		assert(renderPass && "renderPass not initialized");
@@ -120,7 +122,8 @@ namespace poc {
 			.setLineWidth(1.0f);
 
 		const auto multisampleState = vk::PipelineMultisampleStateCreateInfo()
-			.setSampleShadingEnable(VK_FALSE);
+			.setSampleShadingEnable(VK_FALSE)
+			.setRasterizationSamples(physicalDevice.getMaxSampleCount());
 
 		const auto depthStencilState = vk::PipelineDepthStencilStateCreateInfo()
 			.setDepthTestEnable(VK_TRUE)
@@ -168,17 +171,25 @@ namespace poc {
 		const vk::UniquePipelineLayout pipelineLayout;
 		const vk::UniquePipeline pipeline;
 
-		Impl(const VulkanDevice& device, const VulkanSwapchain& swapchain, const VulkanRenderPass& renderPass) :
+		Impl(
+			const VulkanPhysicalDevice& physicalDevice,
+			const VulkanDevice& device,
+			const VulkanSwapchain& swapchain,
+			const VulkanRenderPass& renderPass) :
 			pipelineLayout(createPipelineLayout(device.getDevice())),
-			pipeline(createPipeline(device.getDevice(), swapchain, renderPass.getRenderPass(), *pipelineLayout)) {
+			pipeline(createPipeline(physicalDevice, device.getDevice(), swapchain, renderPass.getRenderPass(), *pipelineLayout)) {
 
 			Logger::info(logTag, "Pipeline created");
 		}
 
 	};
 
-	VulkanPipeline::VulkanPipeline(const VulkanDevice& device, const VulkanSwapchain& swapchain, const VulkanRenderPass& renderPass) :
-		pimpl(make_unique_pimpl<VulkanPipeline::Impl>(device, swapchain, renderPass)) { }
+	VulkanPipeline::VulkanPipeline(
+		const VulkanPhysicalDevice& physicalDevice,
+		const VulkanDevice& device,
+		const VulkanSwapchain& swapchain,
+		const VulkanRenderPass& renderPass) :
+		pimpl(make_unique_pimpl<VulkanPipeline::Impl>(physicalDevice, device, swapchain, renderPass)) { }
 
 	const vk::Pipeline& VulkanPipeline::getPipeline() const {
 		return *pimpl->pipeline;
