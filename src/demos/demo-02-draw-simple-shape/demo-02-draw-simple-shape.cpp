@@ -8,9 +8,9 @@ int main() {
 	try {
 
 		std::vector<poc::Vertex> vertices = {
-			poc::Vertex { glm::vec3(0.0, -0.5, 0.0) },
-			poc::Vertex { glm::vec3(-0.5, 0.5, 0.0)},
-			poc::Vertex { glm::vec3(0.5, 0.5, 0.0)}
+			poc::Vertex { glm::vec3(0.0, -0.5, 0.0), glm::vec3(1.0, 0.0, 0.0) },
+			poc::Vertex { glm::vec3(-0.5, 0.5, 0.0), glm::vec3(1.0, 0.0, 0.0)},
+			poc::Vertex { glm::vec3(0.5, 0.5, 0.0), glm::vec3(1.0, 0.0, 0.0)}
 		};
 
 		auto scene = poc::Scene();
