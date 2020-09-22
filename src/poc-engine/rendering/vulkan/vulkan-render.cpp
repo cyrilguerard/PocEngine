@@ -127,12 +127,14 @@ namespace poc {
 		const std::vector<vk::UniqueSemaphore> imageAcquisitionSemaphores;
 		const std::vector<vk::UniqueSemaphore> graphicCompletedSemaphores;
 
-		Impl(const Window& window,
+		Impl(
+			const Window& window,
 			const VulkanPhysicalDevice& physicalDevice,
 			const VulkanDevice& device,
 			const VulkanSurface& surface,
-			const VulkanCommandPool& commandPool) :
-			swapchain(VulkanSwapchain(window, physicalDevice, device, surface)),
+			const VulkanCommandPool& commandPool,
+			const vk::SwapchainKHR& oldSwapchain) :
+			swapchain(VulkanSwapchain(window, physicalDevice, device, surface, oldSwapchain)),
 			renderPass(VulkanRenderPass(physicalDevice, device, swapchain)),
 			pipeline(VulkanPipeline(physicalDevice, device, swapchain, renderPass)),
 			maxBufferingFrames(swapchain.getNumberOfImages()),
@@ -150,7 +152,20 @@ namespace poc {
 			Logger::info(logTag, "Vulkan render initialized");
 		}
 
-		void render(const VulkanDevice& device, const VulkanScene& scene) {
+		bool render(const VulkanDevice& device, const VulkanScene& scene) {
+			try {
+				if (doRender(device, scene)) {
+					return true;
+				}
+			}
+			catch (vk::OutOfDateKHRError e) {
+				Logger::warn(logTag, e.what());
+			}
+			device.getDevice().waitIdle();
+			return false;
+		}
+
+		bool doRender(const VulkanDevice& device, const VulkanScene& scene) {
 
 			const vk::Fence frameFence{ *frameFences[currentFrame] };
 			const vk::Semaphore imageSemaphore{ *imageAcquisitionSemaphores[currentFrame] };
@@ -218,10 +233,15 @@ namespace poc {
 				.setPSwapchains(&swapchain.getSwapchain())
 				.setPImageIndices(&currentImage);
 
-			device.getPresentationQueue().presentKHR(presentInfo);
+			if (device.getPresentationQueue().presentKHR(presentInfo) == vk::Result::eSuboptimalKHR) {
+				return false;
+			}
+
 			device.getPresentationQueue().waitIdle(); //TODO: do better no need to wait here, need to do in object destruction
 
 			currentFrame = (currentFrame + 1) % maxBufferingFrames;
+
+			return true;
 		}
 
 	};
@@ -231,12 +251,23 @@ namespace poc {
 		const VulkanPhysicalDevice& physicalDevice,
 		const VulkanDevice& device,
 		const VulkanSurface& surface,
-		const VulkanCommandPool& commandPool) :
-		pimpl(make_unique_pimpl<VulkanRender::Impl>(window, physicalDevice, device, surface, commandPool)) { }
+		const VulkanCommandPool& commandPool,
+		const vk::SwapchainKHR& oldSwapchain) :
+		pimpl(make_unique_pimpl<VulkanRender::Impl>(window, physicalDevice, device, surface, commandPool, oldSwapchain)) { }
 
-	void VulkanRender::render(const VulkanDevice& device, const VulkanScene& scene) const {
-		pimpl->render(device, scene);
+	bool VulkanRender::render(const VulkanDevice& device, const VulkanScene& scene) const {
+		return pimpl->render(device, scene);
 	}
+
+	VulkanRender VulkanRender::recreate(
+		const Window& window,
+		const VulkanPhysicalDevice& physicalDevice,
+		const VulkanDevice& device,
+		const VulkanSurface& surface,
+		const VulkanCommandPool& commandPool) {
+		return VulkanRender(window, physicalDevice, device, surface, commandPool, pimpl->swapchain.getSwapchain());
+	}
+
 }
 
 

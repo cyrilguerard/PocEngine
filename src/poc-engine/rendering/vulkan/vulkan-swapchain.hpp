@@ -17,7 +17,8 @@ namespace poc {
 			const Window& window,
 			const VulkanPhysicalDevice& physicalDevice,
 			const VulkanDevice& device,
-			const VulkanSurface& surface);
+			const VulkanSurface& surface,
+			const vk::SwapchainKHR& oldSwapchain);
 
 		const vk::SwapchainKHR& getSwapchain() const;
 		const vk::Format& getFormat() const;

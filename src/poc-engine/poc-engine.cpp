@@ -29,7 +29,7 @@ namespace poc {
 
 			while (!window->isClosing()) {
 				window->update();
-				renderingSystem->render(scene);
+				renderingSystem->render(*window.get(), scene);
 			}
 
 			Logger::info(logTag, "Stopping...");

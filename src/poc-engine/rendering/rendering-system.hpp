@@ -9,7 +9,7 @@ namespace poc {
 	class RenderingSystem {
 	public:
 
-		virtual void render(const Scene& scene) = 0;
+		virtual void render(const Window& window, const Scene& scene) = 0;
 		virtual ~RenderingSystem() {};
 
 		static std::unique_ptr<RenderingSystem> make(const Window& window, GraphicApi::Type type);

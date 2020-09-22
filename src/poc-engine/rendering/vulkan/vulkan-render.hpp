@@ -20,9 +20,17 @@ namespace poc {
 			const VulkanPhysicalDevice& physicalDevice,
 			const VulkanDevice& device,
 			const VulkanSurface& surface,
-			const VulkanCommandPool& commandPool);
+			const VulkanCommandPool& commandPool,
+			const vk::SwapchainKHR& oldSwapchain = nullptr);
 
-		void render(const VulkanDevice& device, const VulkanScene& scene) const;
+		bool render(const VulkanDevice& device, const VulkanScene& scene) const;
+
+		VulkanRender recreate(
+			const Window& window,
+			const VulkanPhysicalDevice& physicalDevice,
+			const VulkanDevice& device,
+			const VulkanSurface& surface,
+			const VulkanCommandPool& commandPool);
 
 	private:
 		class Impl;

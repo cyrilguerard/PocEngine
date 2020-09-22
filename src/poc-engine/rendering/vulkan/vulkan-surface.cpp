@@ -21,15 +21,13 @@ namespace poc {
 	class VulkanSurface::Impl {
 	public:
 
+		const vk::UniqueSurfaceKHR surface;
+
 		Impl(const VulkanInstance& instance, const Window& window) :
 			surface(createSurface(instance.getInstance(), window)) {
 			Logger::info(logTag, "Surface created");
 		}
 
-	private:
-		vk::UniqueSurfaceKHR surface;
-
-		friend VulkanSurface;
 	};
 
 	VulkanSurface::VulkanSurface(const VulkanInstance& instance, const Window& window) :

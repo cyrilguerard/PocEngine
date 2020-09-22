@@ -16,6 +16,7 @@ namespace poc {
 		virtual Size getDrawableSurfaceSize() const = 0;
 		virtual bool isClosing() const = 0;
 		virtual void update() = 0;
+		virtual void waitWhileMinimized() const = 0;
 		virtual ~Window() {};
 
 		static std::unique_ptr<Window> openWindow(int, int, const std::string&);

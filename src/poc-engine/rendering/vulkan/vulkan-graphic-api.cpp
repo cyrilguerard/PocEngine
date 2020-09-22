@@ -22,7 +22,7 @@ namespace poc {
 		const VulkanPhysicalDevice physicalDevice;
 		const VulkanDevice device;
 		const VulkanCommandPool commandPool;
-		const VulkanRender vRender;
+		VulkanRender vRender;
 
 		Impl(const Window& window) :
 			instance(),
@@ -35,9 +35,12 @@ namespace poc {
 			Logger::info(logTag, "Vulkan API fully initialized");
 		}
 
-		void render(const Scene& scene) {
+		void render(const Window& window, const Scene& scene) {
 			if (!scene.isEmpty()) {
-				vRender.render(device, VulkanScene(physicalDevice, device, commandPool, scene));
+				if (!vRender.render(device, VulkanScene(physicalDevice, device, commandPool, scene))) {
+					window.waitWhileMinimized();
+					vRender = vRender.recreate(window, physicalDevice, device, surface, commandPool);
+				}
 			}
 		}
 
@@ -46,8 +49,8 @@ namespace poc {
 	VulkanGraphicApi::VulkanGraphicApi(const Window& window) :
 		pimpl(make_unique_pimpl<VulkanGraphicApi::Impl>(window)) {};
 
-	void VulkanGraphicApi::render(const Scene& scene) {
-		pimpl->render(scene);
+	void VulkanGraphicApi::render(const Window& window, const Scene& scene) {
+		pimpl->render(window, scene);
 	};
 
 }

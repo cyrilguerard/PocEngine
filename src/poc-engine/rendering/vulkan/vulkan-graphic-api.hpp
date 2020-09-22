@@ -11,7 +11,7 @@ namespace poc {
 	public:
 
 		explicit VulkanGraphicApi(const Window& window);
-		virtual void render(const Scene& scene) override;
+		virtual void render(const Window& window, const Scene& scene) override;
 
 	private:
 		class Impl;

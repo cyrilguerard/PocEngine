@@ -16,7 +16,7 @@ namespace poc {
 			VULKAN
 		};
 
-		virtual void render(const Scene& scene) = 0;
+		virtual void render(const Window& window, const Scene& scene) = 0;
 		virtual ~GraphicApi() {}
 
 		static std::unique_ptr<GraphicApi> make(const Window& window, Type type);

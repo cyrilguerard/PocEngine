@@ -44,6 +44,14 @@ namespace poc {
 			glfwPollEvents();
 		}
 
+		virtual void waitWhileMinimized() const override {
+			Size size{};
+			while (size.width == 0 || size.height == 0) {
+				size = this->getDrawableSurfaceSize();
+				glfwWaitEvents();
+			}
+		}
+
 		// deleted
 		WindowGlfw3(const WindowGlfw3& other) = delete;
 		WindowGlfw3& operator=(const WindowGlfw3& other) = delete;
@@ -62,7 +70,7 @@ namespace poc {
 
 		void initGlfwWindow(int width, int height, const std::string& title) {
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+			glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 			glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 			window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 			if (!window) {
