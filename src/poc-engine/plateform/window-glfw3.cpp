@@ -15,6 +15,8 @@ namespace poc {
 		Logger::error("POC::Glfw3", description);
 	}
 
+
+
 	class WindowGlfw3 : public Window {
 	public:
 
@@ -36,12 +38,24 @@ namespace poc {
 			return Size{ static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
 		}
 
+		virtual void setResizeCallback(OnResizeCallback callback) override {
+			onResizeCallback = callback;
+		}
+
 		virtual bool isClosing() const override {
 			return glfwWindowShouldClose(window);
 		}
 
 		virtual void update() override {
 			glfwPollEvents();
+		}
+
+		virtual void waitWhileMinimized() const override {
+			Size size{};
+			while (size.width == 0 || size.height == 0) {
+				size = this->getDrawableSurfaceSize();
+				glfwWaitEvents();
+			}
 		}
 
 		// deleted
@@ -51,6 +65,9 @@ namespace poc {
 		WindowGlfw3& operator=(WindowGlfw3&& other) noexcept = delete;
 
 	private:
+
+		GLFWwindow* window = nullptr;
+		OnResizeCallback onResizeCallback;
 
 		void initGlfw() {
 			glfwSetErrorCallback(errorCall);
@@ -62,12 +79,21 @@ namespace poc {
 
 		void initGlfwWindow(int width, int height, const std::string& title) {
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+			glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 			glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 			window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 			if (!window) {
 				Logger::error(logTag, "Failed to create GLFW window");
 				throw std::runtime_error("Failed to create GLFW window");
+			}
+			glfwSetWindowUserPointer(window, this);
+			glfwSetWindowSizeCallback(window, onResize);
+		}
+
+		static void onResize(GLFWwindow* window, int width, int height) {
+			const WindowGlfw3* w = reinterpret_cast<WindowGlfw3*>(glfwGetWindowUserPointer(window));
+			if (w->onResizeCallback) {
+				(w->onResizeCallback)(width, height);
 			}
 		}
 
@@ -79,9 +105,6 @@ namespace poc {
 			glfwShowWindow(window);
 		}
 
-		GLFWwindow* window = nullptr;
-
-		// friends
 		friend void Window::toGraphicApi(const Window& window, const VkInstance& instance, VkSurfaceKHR* surface);
 	};
 
@@ -104,6 +127,8 @@ namespace poc {
 			throw std::runtime_error("Window surface creation failed (Glfw3/Vulkan)");
 		}
 	}
+
+
 
 #endif // POC_LAYERS_WINDOW_USE_GLFW3
 

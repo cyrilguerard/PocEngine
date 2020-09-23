@@ -80,7 +80,8 @@ namespace poc {
 		const vk::PhysicalDevice physicalDevice,
 		const vk::SurfaceKHR& surface,
 		const vk::SurfaceFormatKHR& imageFormat,
-		const vk::Extent2D& imageExtent) {
+		const vk::Extent2D& imageExtent,
+		const vk::SwapchainKHR& oldSwapchain) {
 
 		assert(device.getDevice() && "device not initialized");
 		assert(physicalDevice && "physicalDevice not initialized");
@@ -102,7 +103,8 @@ namespace poc {
 			.setPreTransform(surfaceCapabilities.currentTransform)
 			.setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
 			.setPresentMode(presentMode)
-			.setClipped(VK_TRUE);
+			.setClipped(VK_TRUE)
+			.setOldSwapchain(oldSwapchain);
 
 		if (device.hasDistinctPresentationQueue()) {
 			std::array<uint32_t, 2> queueFamilyIndices{
@@ -145,10 +147,11 @@ namespace poc {
 			const Window& window,
 			const VulkanPhysicalDevice& physicalDevice,
 			const VulkanDevice& device,
-			const VulkanSurface& surface) :
+			const VulkanSurface& surface,
+			const vk::SwapchainKHR& oldSwapchain) :
 			imageFormat(getImageFormat(physicalDevice.getPhysicalDevice(), surface.getSurface())),
 			imageExtent(getImageExtent(physicalDevice.getPhysicalDevice(), surface.getSurface(), window)),
-			swapchain(createSwapchain(device, physicalDevice.getPhysicalDevice(), surface.getSurface(), imageFormat, imageExtent)),
+			swapchain(createSwapchain(device, physicalDevice.getPhysicalDevice(), surface.getSurface(), imageFormat, imageExtent, oldSwapchain)),
 			imageViews(createImageViews(device.getDevice(), *swapchain, imageFormat)) {
 
 			Logger::info(logTag, "SwapChain created");
@@ -160,8 +163,9 @@ namespace poc {
 		const Window& window,
 		const VulkanPhysicalDevice& physicalDevice,
 		const VulkanDevice& device,
-		const VulkanSurface& surface) :
-		pimpl(make_unique_pimpl<VulkanSwapchain::Impl>(window, physicalDevice, device, surface)) { }
+		const VulkanSurface& surface,
+		const vk::SwapchainKHR& oldSwapchain) :
+		pimpl(make_unique_pimpl<VulkanSwapchain::Impl>(window, physicalDevice, device, surface, oldSwapchain)) { }
 
 	const vk::SwapchainKHR& VulkanSwapchain::getSwapchain() const {
 		return *pimpl->swapchain;

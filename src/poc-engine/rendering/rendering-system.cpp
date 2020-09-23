@@ -13,8 +13,8 @@ namespace poc {
 			graphicApi(GraphicApi::make(window, type)) {
 		}
 
-		void render(const Scene& scene) override {
-			(*graphicApi).render(scene);
+		void render(const Window& window, const Scene& scene) override {
+			(*graphicApi).render(window, scene);
 		}
 
 	private:
