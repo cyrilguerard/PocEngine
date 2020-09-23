@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -8,15 +9,19 @@ namespace poc {
 	class Window {
 	public:
 
+		typedef std::function<void(int width, int height)> OnResizeCallback;
+
 		struct Size {
 			uint32_t width;
 			uint32_t height;
 		};
 
 		virtual Size getDrawableSurfaceSize() const = 0;
+		virtual void setResizeCallback(OnResizeCallback callback) = 0;
 		virtual bool isClosing() const = 0;
 		virtual void update() = 0;
 		virtual void waitWhileMinimized() const = 0;
+
 		virtual ~Window() {};
 
 		static std::unique_ptr<Window> openWindow(int, int, const std::string&);

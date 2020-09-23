@@ -5,6 +5,8 @@
 #include "rendering/graphic-api.hpp"
 #include "rendering/rendering-system.hpp"
 
+#include <functional>
+
 using namespace poc;
 
 namespace poc {
@@ -23,6 +25,8 @@ namespace poc {
 			Logger::info(logTag, "Starting...");
 
 			const auto window = Window::openWindow(1280, 720, "PocEngine");
+			window->setResizeCallback(std::bind(&PocEngineImpl::onResize, this, std::placeholders::_1, std::placeholders::_2));
+
 			const auto renderingSystem = RenderingSystem::make(*window, GraphicApi::Type::VULKAN);
 
 			Logger::info(logTag, "Started");
@@ -36,6 +40,10 @@ namespace poc {
 
 			Logger::info(logTag, "Stopped");
 
+		}
+
+		void onResize(int width, int height) {
+			Logger::info(logTag, std::to_string(width) + " " + std::to_string(height));
 		}
 
 	private:
