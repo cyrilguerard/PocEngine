@@ -7,8 +7,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-
-
 if (MSVC)
     string(REGEX REPLACE "/W3" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     add_compile_options(/W4 /WX)
@@ -31,3 +29,5 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/demos/demo-02-draw-simple-shape")
 add_subdirectory("${PROJECT_SOURCE_DIR}/demos/demo-03-depth-test")
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/tools/bin2cpp")
+
+add_subdirectory("${PROJECT_SOURCE_DIR}/tests")
