@@ -17,12 +17,12 @@ namespace poc {
 
 #ifdef NDEBUG
 
-		inline void setLoggerLevel(const Level level) {}
-		inline void debug(const std::string_view& tag, const std::string& msg) {}
-		inline void info(const std::string_view& tag, const std::string& msg) {}
-		inline void warn(const std::string_view& tag, const std::string& msg) {}
-		inline void error(const std::string_view& tag, const std::string& msg) {}
-		inline void log(const Level level, const std::string_view& tag, const std::string& msg) {}
+		inline void setLoggerLevel(const Level) {}
+		inline void debug(const std::string_view&, const std::string&) {}
+		inline void info(const std::string_view&, const std::string&) {}
+		inline void warn(const std::string_view&, const std::string&) {}
+		inline void error(const std::string_view&, const std::string&) {}
+		inline void log(const Level, const std::string_view&, const std::string&) {}
 #else
 
 		static Level loggerLevel = Level::INFO;

@@ -15,7 +15,7 @@ namespace poc {
 		// expose window as a surface to Vulkan 
 		Window::toGraphicApi(window, static_cast<VkInstance>(instance), &vkSurface);
 		// wrap the surface to be managed by Vulkan
-		return vk::UniqueSurfaceKHR(vkSurface, instance);
+		return vk::UniqueSurfaceKHR(vk::SurfaceKHR(vkSurface), instance);
 	}
 
 	class VulkanSurface::Impl {
